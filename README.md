@@ -1,72 +1,66 @@
 # StageOps Mobile App
 
-Application client permettant aux régisseurs de superviser les opérations techniques d’un projet en temps réel.
+Application terrain destinée aux techniciens lumière, son et plateau.
 
-## Objectif
+Conçue pour fonctionner en environnement réel avec connectivité intermittente.
 
-Fournir une interface simple et rapide pour :
-
-- consulter l’état du matériel
-- déclarer des incidents
-- visualiser un projet technique
-- accéder aux modules selon le rôle utilisateur
-
-## Fonctionnalités MVP
+## Fonctionnalités
 
 - Authentification utilisateur
-- Dashboard projet
-- Vue matériel lumière
-- Vue matériel son
-- Signalement incident
-- Interface adaptée terrain
+- Consultation du matériel
+- Déclaration d’incident
+- Scan QR Code inventaire
+- Synchronisation Offline-First
+- Visualisation technique simplifiée
 
 ## Architecture
 
 src/
   screens/
   components/
-  services/
   modules/
-    lighting/
-    sound/
+    equipment/
     incidents/
-  navigation/
+    scan/
+  services/
+  storage/
+  sync-engine/
+
+## Synchronisation Offline-First
+
+Le moteur de synchronisation permet :
+
+- travail hors connexion
+- synchronisation automatique
+- résolution de conflits
+- stockage local
+
+Technologies possibles :
+- PouchDB
+- WatermelonDB
 
 ## Stack technique
 
-- React Native / Flutter (selon implémentation)
-- API REST StageOps
-- Architecture modulaire
-- UI orientée usage terrain
+- React Native ou Flutter
+- API StageOps
+- Architecture mobile modulaire
 
 ## Installation
 
-### Prérequis
-- Node.js
-- Expo CLI ou environnement mobile
-- API StageOps en fonctionnement
-
-### Setup
-
 git clone <repo>
-cd StageOps-mobile-app
+cd stageops-mobile-app
 npm install
 
-Configurer l’URL API dans :
-
-src/config/api.ts
+Configurer l’URL API.
 
 ### Lancement
 
 npm start
 
-## Philosophie UI
-
-- utilisation rapide
-- lisibilité en conditions techniques
-- navigation minimale
-- tolérance aux erreurs réseau
-
 ## Objectif produit
 
-Permettre à un régisseur de gérer un projet technique depuis un smartphone.
+Permettre aux techniciens de travailler efficacement sur le terrain.
+
+## Licence
+
+Projet académique.
