@@ -1,7 +1,8 @@
 import {
   getAllSceneItems,
   insertSceneItem,
-  updateSceneItemPosition,
+  updateSceneItemPositionTopView,
+  updateSceneItemPositionElevation,
   updateSceneItemInfo,
   deleteSceneItem,
 } from '@infra/db/repos/sceneItemRepo';
@@ -13,10 +14,12 @@ import type { SceneItem, SceneItemType, SceneItemState } from '@shared/types';
 // ─────────────────────────────────────────────
 
 export const DEFAULT_LABEL: Record<SceneItemType, string> = {
-  light: 'Lumière',
-  camera: 'Caméra',
+  light:   'Lumière',
+  camera:  'Caméra',
   speaker: 'Enceinte',
 };
+
+const CLAMP = (v: number) => Math.min(0.95, Math.max(0.05, v));
 
 // ─────────────────────────────────────────────
 // Use-cases
@@ -26,16 +29,17 @@ export async function loadItems(): Promise<SceneItem[]> {
   return getAllSceneItems();
 }
 
-/** Add a new item at the canvas center (0.5, 0.5). */
+/** Add a new item at the center of both canvas views. */
 export async function addItem(type: SceneItemType): Promise<SceneItem> {
   const now = Date.now();
   const item: SceneItem = {
-    id: uuid(),
+    id:         uuid(),
     type,
-    label: DEFAULT_LABEL[type],
-    x: 0.5,
-    y: 0.5,
-    state: 'ok',
+    label:      DEFAULT_LABEL[type],
+    x:          0.5, // horizontal center
+    y:          0.5, // mid-height (elevation view)
+    z:          0.5, // mid-depth  (top view)
+    state:      'ok',
     created_at: now,
     updated_at: now,
   };
@@ -43,10 +47,20 @@ export async function addItem(type: SceneItemType): Promise<SceneItem> {
   return item;
 }
 
-/** Persist the new position after a drag. */
-export async function moveItem(id: string, x: number, y: number): Promise<void> {
-  const clamp = (v: number) => Math.min(0.95, Math.max(0.05, v));
-  await updateSceneItemPosition(id, clamp(x), clamp(y), Date.now());
+/**
+ * Persist position from a top-view drag.
+ * Updates x (horizontal) and z (depth). Height y is preserved.
+ */
+export async function moveItemTopView(id: string, x: number, z: number): Promise<void> {
+  await updateSceneItemPositionTopView(id, CLAMP(x), CLAMP(z), Date.now());
+}
+
+/**
+ * Persist position from an elevation-view drag.
+ * Updates x (horizontal) and y (height). Depth z is preserved.
+ */
+export async function moveItemElevation(id: string, x: number, y: number): Promise<void> {
+  await updateSceneItemPositionElevation(id, CLAMP(x), CLAMP(y), Date.now());
 }
 
 /** Persist label and state changes from the edit sheet. */

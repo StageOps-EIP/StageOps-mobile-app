@@ -16,17 +16,22 @@ import { Ionicons } from '@expo/vector-icons';
 import type { TabScreenProps } from '@app/navigation/types';
 import { SyncStatusBanner } from '@features/sync/ui/SyncStatusBanner';
 import { SceneCanvas } from '@features/scene/ui/SceneCanvas';
+import { ElevationCanvas } from '@features/scene/ui/ElevationCanvas';
 import { ItemSheet } from '@features/scene/ui/ItemSheet';
+import { ViewToggle, type SceneView } from '@features/scene/ui/ViewToggle';
 import {
   loadItems,
   addItem,
-  moveItem,
+  moveItemTopView,
+  moveItemElevation,
   saveItemInfo,
   removeItem,
 } from '@features/scene/usecases/sceneUsecases';
 import type { SceneItem, SceneItemType, SceneItemState } from '@shared/types';
 
 type Props = TabScreenProps<'Scene'>;
+
+// ─── Static data ────────────────────────────────────────────────────────────
 
 const ITEM_TYPES: {
   type: SceneItemType;
@@ -62,29 +67,36 @@ const ITEM_TYPES: {
   },
 ];
 
-const LEGEND: { label: string; color: string; icon?: React.ComponentProps<typeof Ionicons>['name'] }[] = [
+const LEGEND: {
+  label: string;
+  color: string;
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
+}[] = [
   { label: 'OK',            color: '#22c55e', icon: 'checkmark-circle' },
-  { label: 'À vérifier',   color: '#f59e0b', icon: 'alert-circle' },
-  { label: 'Hors service',  color: '#ef4444', icon: 'close-circle' },
-  { label: 'En réparation', color: '#38bdf8', icon: 'build' },
-  { label: 'Lumière',       color: '#fbbf24' },
-  { label: 'Caméra',        color: '#60a5fa' },
-  { label: 'Enceinte',      color: '#a78bfa' },
+  { label: 'À vérifier',   color: '#f59e0b', icon: 'alert-circle'     },
+  { label: 'Hors service',  color: '#ef4444', icon: 'close-circle'     },
+  { label: 'En réparation', color: '#38bdf8', icon: 'build'            },
+  { label: 'Lumière',       color: '#fbbf24'                            },
+  { label: 'Caméra',        color: '#60a5fa'                            },
+  { label: 'Enceinte',      color: '#a78bfa'                            },
 ];
+
+// ─── Screen ─────────────────────────────────────────────────────────────────
 
 export function SceneScreen(_props: Props) {
   const insets = useSafeAreaInsets();
 
-  const [items, setItems] = useState<SceneItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [addPickerVisible, setAddPickerVisible] = useState(false);
+  const [items,           setItems]           = useState<SceneItem[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [selectedId,      setSelectedId]      = useState<string | null>(null);
+  const [viewMode,        setViewMode]        = useState<SceneView>('top');
+  const [sheetVisible,    setSheetVisible]    = useState(false);
+  const [saving,          setSaving]          = useState(false);
+  const [addPickerVisible,setAddPickerVisible]= useState(false);
 
   const selectedItem = items.find(i => i.id === selectedId) ?? null;
 
+  // ── Load on focus ──────────────────────────────────────────────────────────
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -95,14 +107,22 @@ export function SceneScreen(_props: Props) {
     }, []),
   );
 
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleTapItem = (id: string) => {
     setSelectedId(id);
     setSheetVisible(true);
   };
 
-  const handleMoveItem = (id: string, x: number, y: number) => {
+  // TOP VIEW drag: updates x and z
+  const handleMoveTopView = (id: string, x: number, z: number) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, x, z } : item));
+    void moveItemTopView(id, x, z);
+  };
+
+  // ELEVATION VIEW drag: updates x and y
+  const handleMoveElevation = (id: string, x: number, y: number) => {
     setItems(prev => prev.map(item => item.id === id ? { ...item, x, y } : item));
-    void moveItem(id, x, y);
+    void moveItemElevation(id, x, y);
   };
 
   const handleAdd = async (type: SceneItemType) => {
@@ -145,47 +165,79 @@ export function SceneScreen(_props: Props) {
     }
   };
 
+  // ── Derived display values ─────────────────────────────────────────────────
+  const isTopView      = viewMode === 'top';
+  const frameLabel     = isTopView ? 'PLAN DE SCÈNE'  : 'VUE ÉLÉVATION';
+  const axisLabel      = isTopView ? 'Vue de dessus · X × Z' : 'Vue de face · X × Y';
+  const axisIcon: React.ComponentProps<typeof Ionicons>['name'] =
+    isTopView ? 'grid-outline' : 'layers-outline';
+  const itemCountLabel = loading
+    ? '—'
+    : `${items.length} élément${items.length !== 1 ? 's' : ''}`;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <SyncStatusBanner />
 
-      {/* ── Header toolbar ── */}
+      {/* ── Header toolbar ───────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.titleRow}>
-            <View style={styles.titleIcon}>
-              <Ionicons name="grid-outline" size={14} color="#60a5fa" />
+        {/* Title + subtitle */}
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <View style={styles.titleRow}>
+              <View style={styles.titleIcon}>
+                <Ionicons name="grid-outline" size={14} color="#60a5fa" />
+              </View>
+              <Text style={styles.title}>Scène 2D</Text>
+              {/* Item count badge — right of title */}
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#2563eb"
+                  style={styles.loadingIndicator}
+                />
+              ) : (
+                <View style={styles.countBadge}>
+                  <Text style={styles.countBadgeText}>{items.length}</Text>
+                </View>
+              )}
             </View>
-            <Text style={styles.title}>Scène 2D</Text>
+            <Text style={styles.subtitle}>Plan de scène interactif</Text>
           </View>
-          <Text style={styles.subtitle}>Plan de scène interactif</Text>
-        </View>
 
-        <View style={styles.headerRight}>
-          {!loading && (
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{items.length}</Text>
-            </View>
-          )}
-          {loading && <ActivityIndicator size="small" color="#2563eb" style={{ marginRight: 10 }} />}
+          {/* + Créer button */}
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => setAddPickerVisible(true)}
-            activeOpacity={0.85}
+            activeOpacity={0.82}
           >
             <Ionicons name="add" size={18} color="#f1f5f9" />
             <Text style={styles.addBtnText}>Créer</Text>
           </TouchableOpacity>
         </View>
+
+        {/* ViewToggle — centered below title row */}
+        <View style={styles.toggleRow}>
+          <ViewToggle view={viewMode} onChange={setViewMode} />
+        </View>
       </View>
 
-      {/* ── Legend strip ── */}
+      {/* ── Legend strip ─────────────────────────────────────────────────── */}
       <View style={styles.legendContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.legendRow}
         >
+          {/* Axis context badge — leftmost, subtle */}
+          <View style={styles.axisBadge}>
+            <Ionicons name={axisIcon} size={9} color="#3b82f6" />
+            <Text style={styles.axisBadgeText}>{axisLabel}</Text>
+          </View>
+
+          <View style={styles.legendDivider} />
+
           <Text style={styles.legendSectionLabel}>ÉTATS</Text>
           {LEGEND.slice(0, 4).map(l => (
             <View key={l.label} style={styles.legendChip}>
@@ -204,29 +256,42 @@ export function SceneScreen(_props: Props) {
         </ScrollView>
       </View>
 
-      {/* ── Canvas area with frame decoration ── */}
+      {/* ── Canvas area with frame decoration ───────────────────────────── */}
       <View style={styles.canvasFrame}>
+        {/* Mini title bar */}
         <View style={styles.canvasFrameHeader}>
-          <View style={styles.canvasFrameDot} />
-          <Text style={styles.canvasFrameLabel}>PLAN DE SCÈNE</Text>
-          <View style={{ flex: 1 }} />
-          <Text style={styles.canvasFrameCount}>
-            {loading ? '—' : `${items.length} élément${items.length !== 1 ? 's' : ''}`}
+          <View style={[styles.canvasFrameDot, isTopView ? styles.dotBlue : styles.dotTeal]} />
+          <Text style={[styles.canvasFrameLabel, isTopView ? styles.labelBlue : styles.labelTeal]}>
+            {frameLabel}
           </Text>
+          <View style={{ flex: 1 }} />
+          <Text style={styles.canvasFrameCount}>{itemCountLabel}</Text>
         </View>
-        <SceneCanvas
-          items={items}
-          selectedId={selectedId}
-          onTapItem={handleTapItem}
-          onMoveItem={handleMoveItem}
-          onDeselect={() => setSelectedId(null)}
-        />
+
+        {/* Conditional canvas */}
+        {isTopView ? (
+          <SceneCanvas
+            items={items}
+            selectedId={selectedId}
+            onTapItem={handleTapItem}
+            onMoveItem={handleMoveTopView}
+            onDeselect={() => setSelectedId(null)}
+          />
+        ) : (
+          <ElevationCanvas
+            items={items}
+            selectedId={selectedId}
+            onTapItem={handleTapItem}
+            onMoveItem={handleMoveElevation}
+            onDeselect={() => setSelectedId(null)}
+          />
+        )}
       </View>
 
-      {/* ── Bottom inset spacer ── */}
+      {/* ── Bottom inset spacer ──────────────────────────────────────────── */}
       <View style={{ height: insets.bottom }} />
 
-      {/* ── Edit / delete sheet ── */}
+      {/* ── Edit / delete sheet ─────────────────────────────────────────── */}
       <ItemSheet
         visible={sheetVisible}
         item={selectedItem}
@@ -236,7 +301,7 @@ export function SceneScreen(_props: Props) {
         onClose={() => !saving && setSheetVisible(false)}
       />
 
-      {/* ── Add equipment picker ── */}
+      {/* ── Add equipment picker modal ───────────────────────────────────── */}
       <Modal
         visible={addPickerVisible}
         transparent
@@ -248,7 +313,7 @@ export function SceneScreen(_props: Props) {
           <View style={styles.handle} />
 
           <View style={styles.pickerHeaderRow}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.pickerTitle}>Ajouter un équipement</Text>
               <Text style={styles.pickerSubtitle}>Choisissez le type à placer sur la scène</Text>
             </View>
@@ -272,7 +337,12 @@ export function SceneScreen(_props: Props) {
                 onPress={() => void handleAdd(opt.type)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.pickerIconWrap, { backgroundColor: opt.iconBg, borderColor: opt.color + '40' }]}>
+                <View
+                  style={[
+                    styles.pickerIconWrap,
+                    { backgroundColor: opt.iconBg, borderColor: opt.color + '40' },
+                  ]}
+                >
                   <Ionicons name={opt.icon} size={26} color={opt.color} />
                 </View>
                 <View style={styles.pickerCardText}>
@@ -291,28 +361,28 @@ export function SceneScreen(_props: Props) {
   );
 }
 
+// ─── Styles ─────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#0f172a',
   },
 
-  // ── Header ──
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
   },
   headerLeft: {
     flex: 1,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   titleRow: {
     flexDirection: 'row',
@@ -335,27 +405,30 @@ const styles = StyleSheet.create({
     color: '#f1f5f9',
     letterSpacing: -0.3,
   },
+  loadingIndicator: {
+    marginLeft: 4,
+  },
+  countBadge: {
+    backgroundColor: '#1e293b',
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#334155',
+    minWidth: 30,
+    alignItems: 'center',
+  },
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94a3b8',
+  },
   subtitle: {
     fontSize: 11,
     color: '#475569',
     marginTop: 2,
     marginLeft: 34,
     letterSpacing: 0.2,
-  },
-  countBadge: {
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: '#334155',
-    minWidth: 34,
-    alignItems: 'center',
-  },
-  countBadgeText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#94a3b8',
   },
   addBtn: {
     flexDirection: 'row',
@@ -370,6 +443,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 6,
     elevation: 4,
+    marginLeft: 12,
   },
   addBtnText: {
     fontSize: 14,
@@ -378,7 +452,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
 
-  // ── Legend ──
+  // ── View toggle row ───────────────────────────────────────────────────────
+  toggleRow: {
+    alignItems: 'center',
+  },
+
+  // ── Legend strip ──────────────────────────────────────────────────────────
   legendContainer: {
     borderTopWidth: 1,
     borderBottomWidth: 1,
@@ -392,6 +471,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+
+  // Axis context badge
+  axisBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#0d2044',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: '#1e3a5f',
+  },
+  axisBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#3b82f6',
+    letterSpacing: 0.4,
+  },
+
   legendSectionLabel: {
     fontSize: 9,
     fontWeight: '700',
@@ -427,7 +526,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
 
-  // ── Canvas frame ──
+  // ── Canvas frame ──────────────────────────────────────────────────────────
   canvasFrame: {
     flex: 1,
     marginHorizontal: 12,
@@ -453,13 +552,23 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
+  },
+  dotBlue: {
     backgroundColor: '#2563eb',
+  },
+  dotTeal: {
+    backgroundColor: '#0891b2',
   },
   canvasFrameLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#3b82f6',
     letterSpacing: 1.5,
+  },
+  labelBlue: {
+    color: '#3b82f6',
+  },
+  labelTeal: {
+    color: '#22d3ee',
   },
   canvasFrameCount: {
     fontSize: 10,
@@ -467,7 +576,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  // ── Add picker modal ──
+  // ── Add picker modal ──────────────────────────────────────────────────────
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.65)',

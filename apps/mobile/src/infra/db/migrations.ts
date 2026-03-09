@@ -1,5 +1,5 @@
 import { getDatabase } from './db';
-import { MIGRATION_V1, MIGRATION_V2, SCHEMA_VERSION } from './schema';
+import { MIGRATION_V1, MIGRATION_V2, MIGRATION_V3, SCHEMA_VERSION } from './schema';
 import { log } from '@infra/logging/log';
 
 const TAG = 'Migrations';
@@ -63,6 +63,18 @@ async function applyMigrationV2(): Promise<void> {
   log.info(TAG, 'Migration V2 applied');
 }
 
+async function applyMigrationV3(): Promise<void> {
+  const db = getDatabase();
+  log.info(TAG, 'Applying migration V3 — scene depth axis (pos_z)');
+  await db.withExclusiveTransactionAsync(async txn => {
+    for (const stmt of MIGRATION_V3) {
+      await txn.execAsync(stmt);
+    }
+  });
+  await setStoredVersion(3);
+  log.info(TAG, 'Migration V3 applied');
+}
+
 // ─────────────────────────────────────────────
 // Public API
 // ─────────────────────────────────────────────
@@ -93,6 +105,7 @@ export async function migrate(): Promise<void> {
   // Apply each pending version in sequence
   if (current < 1) await applyMigrationV1();
   if (current < 2) await applyMigrationV2();
+  if (current < 3) await applyMigrationV3();
 
   log.info(TAG, `Migration complete. Schema is now V${SCHEMA_VERSION}`);
 }

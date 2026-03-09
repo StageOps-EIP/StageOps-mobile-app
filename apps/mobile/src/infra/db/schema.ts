@@ -7,7 +7,7 @@
  * - Soft-delete via deleted_at (sync tables). Scene uses hard delete (local-only).
  */
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 // ─────────────────────────────────────────────
 // Table definitions
@@ -106,4 +106,12 @@ export const MIGRATION_V1: string[] = [
 
 /** All DDL statements for schema V2 (scene feature), in execution order. */
 export const MIGRATION_V2: string[] = [CREATE_SCENE_EQUIPMENT];
+
+/**
+ * V3 migration — adds depth axis (pos_z) to scene_equipment.
+ * Non-breaking: DEFAULT 0.5 = mid-stage depth for existing items.
+ */
+export const MIGRATION_V3: string[] = [
+  `ALTER TABLE scene_equipment ADD COLUMN pos_z REAL NOT NULL DEFAULT 0.5`,
+];
 

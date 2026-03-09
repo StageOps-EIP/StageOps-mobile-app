@@ -127,10 +127,12 @@ export interface SceneItem {
   id: string;
   type: SceneItemType;
   label: string;
-  /** Normalized x: 0.0 = left edge, 1.0 = right edge of canvas */
+  /** Normalized horizontal position: 0.0 = left, 1.0 = right. Used in both views. */
   x: number;
-  /** Normalized y: 0.0 = top edge, 1.0 = bottom edge of canvas */
+  /** Normalized height: 0.0 = floor, 1.0 = fly tower top. Used in elevation view. */
   y: number;
+  /** Normalized depth: 0.0 = front-of-stage, 1.0 = upstage. Used in top view. */
+  z: number;
   state: SceneItemState;
   created_at: number;
   updated_at: number;
