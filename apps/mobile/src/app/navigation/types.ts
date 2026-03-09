@@ -16,6 +16,7 @@ export type RootStackParamList = {
 export type TabParamList = {
   Dashboard: undefined;
   Inventory: undefined;
+  Scene: undefined;
   IncidentCreate: { equipmentId?: string } | undefined;
   SyncQueue: undefined;
   Settings: undefined;

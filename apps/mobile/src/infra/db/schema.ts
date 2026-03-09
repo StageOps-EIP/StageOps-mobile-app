@@ -1,13 +1,13 @@
 /**
- * SQLite schema V0 — CREATE TABLE IF NOT EXISTS statements.
+ * SQLite schema — CREATE TABLE IF NOT EXISTS statements.
  *
  * Rules:
  * - Every statement is idempotent (IF NOT EXISTS).
  * - Timestamps are stored as INTEGER epoch ms.
- * - Soft-delete via deleted_at.
+ * - Soft-delete via deleted_at (sync tables). Scene uses hard delete (local-only).
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 // ─────────────────────────────────────────────
 // Table definitions
@@ -65,6 +65,19 @@ export const CREATE_SYNC_STATE = `
   );
 `;
 
+export const CREATE_SCENE_EQUIPMENT = `
+  CREATE TABLE IF NOT EXISTS scene_equipment (
+    id         TEXT    NOT NULL PRIMARY KEY,
+    type       TEXT    NOT NULL,
+    label      TEXT    NOT NULL,
+    pos_x      REAL    NOT NULL DEFAULT 0.5,
+    pos_y      REAL    NOT NULL DEFAULT 0.5,
+    state      TEXT    NOT NULL DEFAULT 'ok',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+`;
+
 // ─────────────────────────────────────────────
 // Indexes (idempotent)
 // ─────────────────────────────────────────────
@@ -90,4 +103,7 @@ export const MIGRATION_V1: string[] = [
   CREATE_SYNC_STATE,
   CREATE_INDEXES,
 ];
+
+/** All DDL statements for schema V2 (scene feature), in execution order. */
+export const MIGRATION_V2: string[] = [CREATE_SCENE_EQUIPMENT];
 

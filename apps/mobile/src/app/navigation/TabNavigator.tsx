@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { TabParamList } from './types';
 import { DashboardScreen } from '@app/screens/DashboardScreen';
 import { InventoryScreen } from '@app/screens/InventoryScreen';
+import { SceneScreen } from '@app/screens/SceneScreen';
 import { IncidentCreateScreen } from '@app/screens/IncidentCreateScreen';
 import { SyncQueueScreen } from '@app/screens/SyncQueueScreen';
 import { SettingsPlaceholderScreen } from '@app/screens/SettingsPlaceholderScreen';
@@ -15,6 +16,7 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 const TAB_ICONS: Record<keyof TabParamList, { focused: IoniconsName; unfocused: IoniconsName }> = {
   Dashboard: { focused: 'grid', unfocused: 'grid-outline' },
   Inventory: { focused: 'cube', unfocused: 'cube-outline' },
+  Scene: { focused: 'map', unfocused: 'map-outline' },
   IncidentCreate: { focused: 'warning', unfocused: 'warning-outline' },
   SyncQueue: { focused: 'sync-circle', unfocused: 'sync-circle-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
@@ -36,6 +38,7 @@ export function TabNavigator() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Tableau de bord' }} />
       <Tab.Screen name="Inventory" component={InventoryScreen} options={{ title: 'Inventaire' }} />
+      <Tab.Screen name="Scene" component={SceneScreen} options={{ title: 'Scène' }} />
       <Tab.Screen
         name="IncidentCreate"
         component={IncidentCreateScreen}

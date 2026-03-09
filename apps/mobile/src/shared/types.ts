@@ -115,3 +115,24 @@ export interface SyncPullResponse {
   changes: SyncChange[];
 }
 
+// ─────────────────────────────────────────────
+// Scene
+// ─────────────────────────────────────────────
+
+export type SceneItemType = 'light' | 'camera' | 'speaker';
+
+export type SceneItemState = 'ok' | 'a_verifier' | 'hors_service' | 'en_reparation';
+
+export interface SceneItem {
+  id: string;
+  type: SceneItemType;
+  label: string;
+  /** Normalized x: 0.0 = left edge, 1.0 = right edge of canvas */
+  x: number;
+  /** Normalized y: 0.0 = top edge, 1.0 = bottom edge of canvas */
+  y: number;
+  state: SceneItemState;
+  created_at: number;
+  updated_at: number;
+}
+
