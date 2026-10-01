@@ -50,12 +50,12 @@ documentation qui reflète le projet réel. Aucune nouvelle fonctionnalité dans
 
 | ID | Titre | Labels | Taille | Assigné | Terminé quand | Issue |
 |---|---|---|---|---|---|---|
-| 0.1 | Corriger l'accès à l'app via Expo Go (scan du QR code local) | `type:bug` `type:setup` | M | | Les deux membres de l'équipe ouvrent l'app sur leur téléphone via Expo Go ; la cause (compte Expo, réseau local, mode tunnel…) et la procédure sont documentées dans `docs/RUNBOOK.md` | |
-| 0.2 | Protéger `main` et ajouter les templates d'issue et de PR | `type:setup` | S | | Merge sur `main` impossible sans PR approuvée par l'autre membre ; template de PR avec la checklist « terminé » de `CLAUDE.md` | |
-| 0.3 | Appliquer Prettier sur tout le code (commit isolé) | `type:setup` | S | | `npm run format:check` passe ; le commit ne contient que du formatage | |
-| 0.4 | Configuration d'environnement : `.env.example`, `.gitignore`, version de Node | `type:setup` | S | | `.env` ignoré par git ; `EXPO_PUBLIC_API_URL` documentée dans `.env.example` ; `.nvmrc` + champ `engines` présents | |
-| 0.5 | Mettre en place Jest + Testing Library | `type:test` | S | | `npm test` existe et un premier test (`backoffMs`) passe | |
-| 0.6 | CI GitHub Actions : typecheck, lint, format:check, test | `type:ci` | S | | CI verte sur une PR et bloquante pour le merge | |
-| 0.7 | Réécrire le README | `type:docs` | S | | Stack réelle décrite ; un nouveau venu lance l'app en suivant le README (depuis `apps/mobile`) | |
-| 0.8 | Socle de documentation projet | `type:docs` | M | Quentin | `CLAUDE.md`, `ARCHITECTURE.md`, `docs/SCHEMA.md`, `docs/DECISIONS.md`, `docs/RUNBOOK.md` et `docs/ROADMAP.md` mergés et relus par les deux ; audit archivé dans `docs/audits/` | |
-| 0.9 | Préparer la phase 1 | `type:analyse` | M | | Phase 1 rédigée dans ce document (objectif + issues + critères), validée par les deux, milestone et issues créés dans le GitHub Project | |
+| 0.1 | Corriger l'accès à l'app via Expo Go (scan du QR code local) | `type:bug` `type:setup` | M | | Les deux membres de l'équipe ouvrent l'app sur leur téléphone via Expo Go ; la cause (compte Expo, réseau local, mode tunnel…) et la procédure sont documentées dans `docs/RUNBOOK.md` | #1 |
+| 0.2 | Protéger `main` et ajouter les templates d'issue et de PR | `type:setup` | S | | Merge sur `main` impossible sans PR approuvée par l'autre membre ; template de PR avec la checklist « terminé » de `CLAUDE.md` | #2 |
+| 0.3 | Appliquer Prettier sur tout le code (commit isolé) | `type:setup` | S | | `npm run format:check` passe ; le commit ne contient que du formatage | #3 |
+| 0.4 | Configuration d'environnement : `.env.example`, `.gitignore`, version de Node | `type:setup` | S | | `.env` ignoré par git ; `EXPO_PUBLIC_API_URL` documentée dans `.env.example` ; `.nvmrc` + champ `engines` présents | #4 |
+| 0.5 | Mettre en place Jest + Testing Library | `type:test` | S | | `npm test` existe et un premier test (`backoffMs`) passe | #5 |
+| 0.6 | CI GitHub Actions : typecheck, lint, format:check, test | `type:ci` | S | | CI verte sur une PR et bloquante pour le merge | #6 |
+| 0.7 | Réécrire le README | `type:docs` | S | | Stack réelle décrite ; un nouveau venu lance l'app en suivant le README (depuis `apps/mobile`) | #7 |
+| 0.8 | Socle de documentation projet | `type:docs` | M | Quentin | `CLAUDE.md`, `ARCHITECTURE.md`, `docs/SCHEMA.md`, `docs/DECISIONS.md`, `docs/RUNBOOK.md` et `docs/ROADMAP.md` mergés et relus par les deux ; audit archivé dans `docs/audits/` | #8 |
+| 0.9 | Préparer la phase 1 | `type:analyse` | M | | Phase 1 rédigée dans ce document (objectif + issues + critères), validée par les deux, milestone et issues créés dans le GitHub Project | #9 |
