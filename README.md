@@ -33,7 +33,9 @@ Library ; une CI GitHub Actions rejoue typecheck, lint, format:check et tests su
 
 ## Prérequis
 
-- Node.js 22.13 ou plus récent (minimum requis par Expo SDK 58), avec npm.
+- Node.js 22.13 ou plus récent (minimum requis par Expo SDK 58), avec npm. La version de
+  référence (celle de la CI) est dans `.nvmrc`, à la racine du dépôt : avec nvm, `nvm install` (une
+  fois) puis `nvm use` la sélectionnent, depuis `apps/mobile/` aussi (nvm remonte jusqu'au `.nvmrc`).
 - L'application **Expo Go** sur le téléphone, compatible avec le SDK 58.
 - Le téléphone et l'ordinateur sur le même réseau Wi-Fi.
 
@@ -45,8 +47,12 @@ Library ; une CI GitHub Actions rejoue typecheck, lint, format:check et tests su
 git clone https://github.com/StageOps-EIP/StageOps-mobile-app.git
 cd StageOps-mobile-app/apps/mobile
 npm install
+cp .env.example .env   # puis renseigner EXPO_PUBLIC_API_URL
 npx expo start
 ```
+
+`.env` contient l'URL de l'API StageOps (voir les commentaires de `.env.example`). Il est
+ignoré par git ; sans lui, l'app vise `http://localhost:8080`.
 
 Scanner ensuite le QR code affiché dans le terminal : appareil photo sur iOS, application
 Expo Go sur Android. Au premier lancement, l'app crée sa base locale et insère des données de
