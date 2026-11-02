@@ -7,7 +7,8 @@ import { upsertEquipment } from '@infra/db/repos/equipmentRepo';
 import { upsertIncident } from '@infra/db/repos/incidentRepo';
 import { getCursor, setCursor, setLastSyncAt } from '@infra/db/repos/syncStateRepo';
 import { getDeviceId } from './device';
-import { SYNC_BATCH_SIZE, SYNC_BACKOFF_BASE_MS, SYNC_BACKOFF_MAX_MS } from '@shared/constants';
+import { backoffMs } from './backoff';
+import { SYNC_BATCH_SIZE } from '@shared/constants';
 import type { Equipment, Incident, SyncChange } from '@shared/types';
 
 const TAG = 'SyncEngine';
@@ -23,15 +24,6 @@ let _retryTimer: ReturnType<typeof setTimeout> | null = null;
 // ─────────────────────────────────────────────
 // Backoff helpers
 // ─────────────────────────────────────────────
-
-/**
- * Computes the next retry delay using full-jitter exponential backoff:
- *   delay = rand(0, min(MAX, BASE * 2^n))
- */
-function backoffMs(failures: number): number {
-  const cap = Math.min(SYNC_BACKOFF_MAX_MS, SYNC_BACKOFF_BASE_MS * Math.pow(2, failures));
-  return Math.floor(Math.random() * cap);
-}
 
 function cancelRetryTimer(): void {
   if (_retryTimer !== null) {
