@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { EquipmentStatus, EquipmentCategory } from '@shared/types';
 import type { InventoryFilter } from '../usecases/inventoryUsecases';
@@ -15,19 +8,19 @@ import type { InventoryFilter } from '../usecases/inventoryUsecases';
 // ─────────────────────────────────────────────
 
 const STATUS_CHIPS: { value: EquipmentStatus | null; label: string; color: string }[] = [
-  { value: null,           label: 'Tous',          color: '#64748b' },
-  { value: 'OK',           label: 'OK',            color: '#22c55e' },
-  { value: 'A_VERIFIER',   label: 'À vérifier',    color: '#f59e0b' },
-  { value: 'HS',           label: 'HS',            color: '#ef4444' },
-  { value: 'EN_REPARATION',label: 'En réparation', color: '#38bdf8' },
+  { value: null, label: 'Tous', color: '#64748b' },
+  { value: 'OK', label: 'OK', color: '#22c55e' },
+  { value: 'A_VERIFIER', label: 'À vérifier', color: '#f59e0b' },
+  { value: 'HS', label: 'HS', color: '#ef4444' },
+  { value: 'EN_REPARATION', label: 'En réparation', color: '#38bdf8' },
 ];
 
 const CATEGORY_CHIPS: { value: EquipmentCategory | null; label: string }[] = [
-  { value: null,       label: 'Tout' },
-  { value: 'SON',      label: 'Son' },
-  { value: 'LUMIERE',  label: 'Lumière' },
-  { value: 'VIDEO',    label: 'Vidéo' },
-  { value: 'PLATEAU',  label: 'Plateau' },
+  { value: null, label: 'Tout' },
+  { value: 'SON', label: 'Son' },
+  { value: 'LUMIERE', label: 'Lumière' },
+  { value: 'VIDEO', label: 'Vidéo' },
+  { value: 'PLATEAU', label: 'Plateau' },
   { value: 'SECURITE', label: 'Sécu' },
   { value: 'ACCROCHE', label: 'Accroche' },
 ];
@@ -56,12 +49,7 @@ function Chip({
         active && { backgroundColor: accentColor + '22', borderColor: accentColor },
       ]}
     >
-      <Text
-        style={[
-          chipStyles.label,
-          active && { color: accentColor, fontWeight: '600' },
-        ]}
-      >
+      <Text style={[chipStyles.label, active && { color: accentColor, fontWeight: '600' }]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -98,21 +86,21 @@ export function EquipmentFilters({ filter, onChange }: Props) {
     <View style={styles.wrapper}>
       {/* Search bar */}
       <View style={styles.searchRow}>
-        <Ionicons name='search-outline' size={16} color='#64748b' style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={16} color="#64748b" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder='Rechercher…'
-          placeholderTextColor='#475569'
+          placeholder="Rechercher…"
+          placeholderTextColor="#475569"
           value={filter.search}
-          onChangeText={(t) => onChange({ ...filter, search: t })}
-          returnKeyType='search'
-          clearButtonMode='while-editing'
+          onChangeText={t => onChange({ ...filter, search: t })}
+          returnKeyType="search"
+          clearButtonMode="while-editing"
           autoCorrect={false}
-          autoCapitalize='none'
+          autoCapitalize="none"
         />
         {filter.search.length > 0 && (
           <TouchableOpacity onPress={() => onChange({ ...filter, search: '' })}>
-            <Ionicons name='close-circle' size={16} color='#64748b' />
+            <Ionicons name="close-circle" size={16} color="#64748b" />
           </TouchableOpacity>
         )}
       </View>
@@ -123,7 +111,7 @@ export function EquipmentFilters({ filter, onChange }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipRow}
       >
-        {STATUS_CHIPS.map((chip) => (
+        {STATUS_CHIPS.map(chip => (
           <Chip
             key={chip.value ?? '_all_status'}
             label={chip.label}
@@ -140,7 +128,7 @@ export function EquipmentFilters({ filter, onChange }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipRow}
       >
-        {CATEGORY_CHIPS.map((chip) => (
+        {CATEGORY_CHIPS.map(chip => (
           <Chip
             key={chip.value ?? '_all_cat'}
             label={chip.label}

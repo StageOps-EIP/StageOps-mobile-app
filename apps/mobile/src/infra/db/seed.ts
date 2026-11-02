@@ -194,8 +194,17 @@ export async function seedIfEmpty(): Promise<void> {
             responsible_name, last_check_at, notes, updated_at, deleted_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          eq.id, eq.name, eq.category, eq.qr_code, eq.location, eq.status,
-          eq.responsible_name, eq.last_check_at, eq.notes, eq.updated_at, eq.deleted_at,
+          eq.id,
+          eq.name,
+          eq.category,
+          eq.qr_code,
+          eq.location,
+          eq.status,
+          eq.responsible_name,
+          eq.last_check_at,
+          eq.notes,
+          eq.updated_at,
+          eq.deleted_at,
         ],
       );
     }
@@ -207,8 +216,16 @@ export async function seedIfEmpty(): Promise<void> {
             description, created_by, created_at, updated_at, deleted_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          inc.id, inc.equipment_id, inc.title, inc.severity, inc.status,
-          inc.description, inc.created_by, inc.created_at, inc.updated_at, inc.deleted_at,
+          inc.id,
+          inc.equipment_id,
+          inc.title,
+          inc.severity,
+          inc.status,
+          inc.description,
+          inc.created_by,
+          inc.created_at,
+          inc.updated_at,
+          inc.deleted_at,
         ],
       );
     }
@@ -228,9 +245,7 @@ export async function resetDb(): Promise<void> {
   }
   log.warn(TAG, 'Resetting all data');
   await transaction(async txn => {
-    await txn.execAsync(
-      'DELETE FROM outbox_events; DELETE FROM incidents; DELETE FROM equipment;',
-    );
+    await txn.execAsync('DELETE FROM outbox_events; DELETE FROM incidents; DELETE FROM equipment;');
   });
   log.warn(TAG, 'All data cleared');
 }

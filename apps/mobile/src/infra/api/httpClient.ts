@@ -40,10 +40,7 @@ interface FetchOptions extends Omit<RequestInit, 'signal'> {
   timeoutMs?: number;
 }
 
-async function fetchJson<T>(
-  url: string,
-  options: FetchOptions = {},
-): Promise<T> {
+async function fetchJson<T>(url: string, options: FetchOptions = {}): Promise<T> {
   const { timeoutMs = HTTP_TIMEOUT_MS, ...init } = options;
 
   const controller = new AbortController();
@@ -93,15 +90,10 @@ export async function get<T>(url: string, options?: FetchOptions): Promise<T> {
   return fetchJson<T>(url, { ...options, method: 'GET' });
 }
 
-export async function post<T>(
-  url: string,
-  body: unknown,
-  options?: FetchOptions,
-): Promise<T> {
+export async function post<T>(url: string, body: unknown, options?: FetchOptions): Promise<T> {
   return fetchJson<T>(url, {
     ...options,
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
-

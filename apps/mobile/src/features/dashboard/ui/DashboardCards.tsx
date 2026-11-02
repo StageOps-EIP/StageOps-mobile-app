@@ -24,7 +24,7 @@ export function StatCard({ label, count, accent, icon, loading }: StatCardProps)
         <Ionicons name={icon} size={20} color={accent} />
       </View>
       {loading || count === null ? (
-        <ActivityIndicator size='small' color={accent} style={styles.loader} />
+        <ActivityIndicator size="small" color={accent} style={styles.loader} />
       ) : (
         <Text style={[styles.count, { color: accent }]}>{count}</Text>
       )}
@@ -57,31 +57,31 @@ export function StatsGrid({
   return (
     <View style={styles.grid}>
       <StatCard
-        label='Équipements HS'
+        label="Équipements HS"
         count={hs}
-        accent='#ef4444'
-        icon='warning-outline'
+        accent="#ef4444"
+        icon="warning-outline"
         loading={loading}
       />
       <StatCard
-        label='À vérifier'
+        label="À vérifier"
         count={aVerifier}
-        accent='#f59e0b'
-        icon='time-outline'
+        accent="#f59e0b"
+        icon="time-outline"
         loading={loading}
       />
       <StatCard
-        label='Opérationnels'
+        label="Opérationnels"
         count={operationnels}
-        accent='#22c55e'
-        icon='checkmark-circle-outline'
+        accent="#22c55e"
+        icon="checkmark-circle-outline"
         loading={loading}
       />
       <StatCard
-        label='Incidents ouverts'
+        label="Incidents ouverts"
         count={openIncidents}
-        accent='#f97316'
-        icon='flame-outline'
+        accent="#f97316"
+        icon="flame-outline"
         loading={loading}
       />
     </View>
@@ -129,4 +129,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

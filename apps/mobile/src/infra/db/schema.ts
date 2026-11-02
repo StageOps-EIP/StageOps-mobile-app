@@ -90,4 +90,3 @@ export const MIGRATION_V1: string[] = [
   CREATE_SYNC_STATE,
   CREATE_INDEXES,
 ];
-

@@ -32,9 +32,7 @@ export interface CreateIncidentInput {
  *
  * Returns the newly created Incident.
  */
-export async function createIncident(
-  input: CreateIncidentInput,
-): Promise<Incident> {
+export async function createIncident(input: CreateIncidentInput): Promise<Incident> {
   const now = Date.now();
   const deviceId = await getDeviceId();
 
@@ -81,4 +79,3 @@ export async function createIncident(
 
   return incident;
 }
-

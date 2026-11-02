@@ -46,3 +46,73 @@ npx expo-doctor
   ```
 
 - En dernier recours, passer par un tunnel : `npx expo start --tunnel`.
+
+## Ajouter une migration SQLite
+
+Règles du prototype SQLite, à remplacer lors de la migration vers PouchDB (cf. `docs/DECISIONS.md`).
+
+1. Dans `src/infra/db/schema.ts`, déclarer les instructions SQL de la nouvelle version dans un
+   tableau `MIGRATION_V<N>: string[]`, et passer `SCHEMA_VERSION` à `<N>` : c'est la version
+   cible.
+2. Dans `src/infra/db/migrations.ts`, écrire `applyMigrationV<N>()` sur le modèle de
+   `applyMigrationV1()` (instructions exécutées dans une transaction exclusive, puis
+   `setStoredVersion(<N>)`), et l'appeler dans `migrate()` à la suite des versions existantes :
+
+   ```ts
+   if (current < <N>) await applyMigrationV<N>();
+   ```
+
+3. Relancer l'app. `migrate()` s'exécute à chaque démarrage (`AppProviders`) et compare la
+   version stockée dans `sync_state` (clé `schema_version`, 0 si absente) à `SCHEMA_VERSION`.
+   Logs attendus dans le terminal Metro :
+
+   ```text
+   [INFO][Migrations] Schema: current=<N-1>, target=<N>
+   [INFO][Migrations] Migration complete. Schema is now V<N>
+   ```
+
+   Aux lancements suivants : `[INFO][Migrations] Schema is up to date`.
+4. Mettre à jour `docs/SCHEMA.md`.
+
+Ne jamais modifier une migration déjà mergée sur `main` : des appareils l'ont peut-être déjà
+appliquée. Toute évolution passe par une nouvelle version.
+
+## Réinitialiser la base locale sur un téléphone
+
+L'app n'expose aucun bouton de réinitialisation (`resetDb()` existe dans
+`src/infra/db/seed.ts` mais n'est appelé nulle part). Avec Expo Go, il faut effacer les données
+d'Expo Go elle-même :
+
+- **Android** : Paramètres → Applications → Expo Go → Stockage → Vider les données.
+- **iOS** : désinstaller puis réinstaller Expo Go.
+
+Au relancement, la base est recréée, toutes les migrations sont rejouées depuis la version 0,
+puis `seedIfEmpty()` réinsère les données de démo. Les événements outbox non synchronisés et le
+`device_id` sont perdus.
+
+## Cycle de vie d'une branche
+
+1. Partir de `main` à jour :
+
+   ```bash
+   git switch main && git pull
+   git switch -c <type>/<n°issue>-<description>
+   ```
+
+2. Mettre à jour une branche partagée avec `git merge main`, jamais `rebase`.
+3. Après le merge de la PR, supprimer la branche :
+
+   ```bash
+   git switch main && git pull
+   git branch -d <type>/<n°issue>-<description>
+   git fetch --prune
+   ```
+
+## Vérifications avant d'ouvrir une PR
+
+Depuis `apps/mobile/` :
+
+```bash
+npm run typecheck
+npm run lint
+```

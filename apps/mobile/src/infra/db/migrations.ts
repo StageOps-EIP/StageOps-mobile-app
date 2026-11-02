@@ -84,4 +84,3 @@ export async function migrate(): Promise<void> {
 
   log.info(TAG, `Migration complete. Schema is now V${SCHEMA_VERSION}`);
 }
-

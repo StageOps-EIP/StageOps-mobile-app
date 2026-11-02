@@ -22,18 +22,13 @@ export interface DashboardStats {
  * All reads hit the local SQLite DB — no network required.
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [equipment, incidents] = await Promise.all([
-    getAllEquipment(),
-    getAllIncidents(),
-  ]);
+  const [equipment, incidents] = await Promise.all([getAllEquipment(), getAllIncidents()]);
 
   return {
-    hs: equipment.filter((e) => e.status === 'HS').length,
-    aVerifier: equipment.filter((e) => e.status === 'A_VERIFIER').length,
-    operationnels: equipment.filter((e) => e.status === 'OK').length,
-    openIncidents: incidents.filter(
-      (i) => i.status === 'OPEN' || i.status === 'IN_PROGRESS',
-    ).length,
+    hs: equipment.filter(e => e.status === 'HS').length,
+    aVerifier: equipment.filter(e => e.status === 'A_VERIFIER').length,
+    operationnels: equipment.filter(e => e.status === 'OK').length,
+    openIncidents: incidents.filter(i => i.status === 'OPEN' || i.status === 'IN_PROGRESS').length,
   };
 }
 
@@ -43,4 +38,3 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getRecentIncidents(limit = 3): Promise<Incident[]> {
   return listRecentIncidents(limit);
 }
-

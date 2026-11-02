@@ -55,4 +55,3 @@ export async function resetDeviceId(): Promise<void> {
   await AsyncStorage.removeItem(STORAGE_KEY);
   log.warn(TAG, 'device_id reset');
 }
-

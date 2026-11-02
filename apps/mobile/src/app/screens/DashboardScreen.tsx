@@ -115,19 +115,19 @@ export function DashboardScreen({ navigation }: Props) {
           }
         })
         .catch((err: unknown) => {
-          if (!cancelled)
-            setError((err as Error).message ?? 'Erreur de chargement');
+          if (!cancelled) setError((err as Error).message ?? 'Erreur de chargement');
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
         });
 
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }, []),
   );
 
-  const navigateToIncidentCreate = () =>
-    navigation.navigate('IncidentCreate');
+  const navigateToIncidentCreate = () => navigation.navigate('IncidentCreate');
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -160,7 +160,7 @@ export function DashboardScreen({ navigation }: Props) {
         {/* Quick actions */}
         <View style={styles.actions}>
           <TouchableOpacity style={[styles.actionBtn, styles.actionBtnSecondary]}>
-            <Ionicons name='qr-code-outline' size={18} color='#e2e8f0' />
+            <Ionicons name="qr-code-outline" size={18} color="#e2e8f0" />
             <Text style={styles.actionBtnText}>Scanner QR</Text>
           </TouchableOpacity>
 
@@ -168,10 +168,8 @@ export function DashboardScreen({ navigation }: Props) {
             style={[styles.actionBtn, styles.actionBtnPrimary]}
             onPress={navigateToIncidentCreate}
           >
-            <Ionicons name='add-circle-outline' size={18} color='#0f172a' />
-            <Text style={[styles.actionBtnText, styles.actionBtnTextDark]}>
-              Créer incident
-            </Text>
+            <Ionicons name="add-circle-outline" size={18} color="#0f172a" />
+            <Text style={[styles.actionBtnText, styles.actionBtnTextDark]}>Créer incident</Text>
           </TouchableOpacity>
         </View>
 
@@ -180,16 +178,11 @@ export function DashboardScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Incidents récents (24 h)</Text>
 
           {loading ? (
-            <ActivityIndicator
-              color='#f97316'
-              style={{ marginTop: 16 }}
-            />
+            <ActivityIndicator color="#f97316" style={{ marginTop: 16 }} />
           ) : recent.length === 0 ? (
             <Text style={styles.emptyText}>Aucun incident ces dernières 24 h</Text>
           ) : (
-            recent.map((inc) => (
-              <IncidentRow key={inc.id} incident={inc} />
-            ))
+            recent.map(inc => <IncidentRow key={inc.id} incident={inc} />)
           )}
         </View>
       </ScrollView>
@@ -277,4 +270,3 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
-

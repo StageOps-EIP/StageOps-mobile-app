@@ -17,18 +17,14 @@ export interface EquipmentFilter {
 
 /** Returns all equipment rows that haven't been soft-deleted. */
 export async function getAllEquipment(): Promise<Equipment[]> {
-  return getAll<Equipment>(
-    `SELECT * FROM equipment WHERE deleted_at IS NULL ORDER BY name ASC`,
-  );
+  return getAll<Equipment>(`SELECT * FROM equipment WHERE deleted_at IS NULL ORDER BY name ASC`);
 }
 
 /**
  * Returns equipment filtered by optional search text, status and category.
  * All filtering is done in SQL for efficiency.
  */
-export async function listEquipment(
-  filter: EquipmentFilter = {},
-): Promise<Equipment[]> {
+export async function listEquipment(filter: EquipmentFilter = {}): Promise<Equipment[]> {
   const conditions: string[] = ['deleted_at IS NULL'];
   const params: (string | number)[] = [];
 
@@ -54,10 +50,7 @@ export async function listEquipment(
 
 /** Returns a single equipment row or null. */
 export async function getEquipmentById(id: string): Promise<Equipment | null> {
-  return getFirst<Equipment>(
-    `SELECT * FROM equipment WHERE id = ?`,
-    [id],
-  );
+  return getFirst<Equipment>(`SELECT * FROM equipment WHERE id = ?`, [id]);
 }
 
 // ─────────────────────────────────────────────
@@ -107,13 +100,10 @@ export async function upsertEquipment(eq: Equipment): Promise<void> {
  * Soft-delete: sets deleted_at to the given timestamp.
  * Does not remove the row so that outbox events can still reference it.
  */
-export async function softDeleteEquipment(
-  id: string,
-  deletedAt: number,
-): Promise<void> {
-  await run(
-    `UPDATE equipment SET deleted_at = ?, updated_at = ? WHERE id = ?`,
-    [deletedAt, deletedAt, id],
-  );
+export async function softDeleteEquipment(id: string, deletedAt: number): Promise<void> {
+  await run(`UPDATE equipment SET deleted_at = ?, updated_at = ? WHERE id = ?`, [
+    deletedAt,
+    deletedAt,
+    id,
+  ]);
 }
-

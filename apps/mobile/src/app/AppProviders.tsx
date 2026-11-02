@@ -59,4 +59,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
 });
-

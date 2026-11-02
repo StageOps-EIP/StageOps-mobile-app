@@ -99,7 +99,7 @@ export async function syncNow(): Promise<void> {
     const { acks } = await pushEvents(deviceId, pending);
 
     // ── 2. Process acks ──────────────────────────
-    const ackMap = new Map(acks.map((a) => [a.event_id, a]));
+    const ackMap = new Map(acks.map(a => [a.event_id, a]));
 
     for (const event of pending) {
       const ack = ackMap.get(event.event_id);
@@ -177,4 +177,3 @@ export async function maybeSync(): Promise<void> {
 export function isSyncing(): boolean {
   return _running;
 }
-

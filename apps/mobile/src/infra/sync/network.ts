@@ -40,4 +40,3 @@ export function useNetworkStatus(): NetworkStatus {
 
   return status;
 }
-
