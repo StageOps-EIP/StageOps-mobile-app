@@ -115,4 +115,8 @@ Depuis `apps/mobile/` :
 ```bash
 npm run typecheck
 npm run lint
+npm run format:check
+npm test
 ```
+
+La CI GitHub Actions rejoue ces quatre vérifications sur chaque PR.

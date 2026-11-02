@@ -38,6 +38,9 @@ maintenue).
   connectivité via `@react-native-community/netinfo`
 - **Identifiants** : UUID v4 via `expo-crypto` (`src/shared/ids.ts`)
 - **Qualité** : ESLint 9 (flat config, `eslint-config-expo`) + Prettier
+- **Tests** : Jest 30 (preset `jest-expo`) + React Native Testing Library
+- **CI** : GitHub Actions (`.github/workflows/mobile.yml`) : typecheck, lint, format:check et
+  tests sur chaque PR vers `main`
 - Pas de Flutter. Le stockage SQLite + outbox décrit ici est le **prototype du MVP** : la cible
   retenue est PouchDB répliqué avec CouchDB (ADR-0001 du backend), cf. `docs/DECISIONS.md`
 
