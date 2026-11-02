@@ -61,5 +61,5 @@ documentation qui reflète le projet réel. Aucune nouvelle fonctionnalité dans
 | 0.5 | Mettre en place Jest + Testing Library | `type:test` | S | | `npm test` existe et un premier test (`backoffMs`) passe | #5 |
 | 0.6 | CI GitHub Actions : typecheck, lint, format:check, test | `type:ci` | S | | CI verte sur une PR et bloquante pour le merge | #6 |
 | 0.7 | Réécrire le README | `type:docs` | S | | Stack réelle décrite ; un nouveau venu lance l'app en suivant le README (depuis `apps/mobile`) | #7 |
-| 0.8 | Socle de documentation projet | `type:docs` | M | Quentinf06 | `CLAUDE.md`, `ARCHITECTURE.md`, `docs/SCHEMA.md`, `docs/DECISIONS.md`, `docs/RUNBOOK.md` et `docs/ROADMAP.md` mergés et relus par les deux ; audit archivé dans `docs/audits/` | #8 |
+| 0.8 | Socle de documentation projet | `type:docs` | M | Quentinf06 | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/SCHEMA.md`, `docs/DECISIONS.md`, `docs/RUNBOOK.md` et `docs/ROADMAP.md` mergés et relus par les deux ; audit archivé dans `docs/audits/` | #8 |
 | 0.9 | Préparer la phase 1 | `type:analyse` | M | | Phase 1 rédigée dans ce document (objectif + issues + critères), validée par les deux, milestone et issues créés dans le GitHub Project | #9 |
