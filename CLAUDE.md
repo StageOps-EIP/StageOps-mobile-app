@@ -10,18 +10,19 @@ dans `CLAUDE.local.md` (ignoré par git), jamais ici.
 
 ## Le projet
 
-**StageOps** (EIP Epitech) : application mobile pour les techniciens de spectacle (son, lumière,
-vidéo, plateau, sécurité, accroche) permettant de gérer l'inventaire du matériel et de déclarer
-des incidents **sur le terrain, même sans réseau**.
+**StageOps** (EIP Epitech) : application mobile pour les techniciens de spectacle permettant de
+gérer l'inventaire du matériel et de déclarer des incidents **sur le terrain, même sans réseau**.
 
 Principe structurant : **offline-first**. Toute lecture et écriture passe par la base SQLite
 locale ; les modifications sont empilées dans `outbox_events` et poussées vers l'API StageOps
 quand le réseau revient. L'app doit rester entièrement utilisable hors connexion.
 
+Règles du prototype SQLite, à remplacer lors de la migration vers PouchDB (cf. `docs/DECISIONS.md`).
+
 Ce dépôt ne contient **que l'application mobile**. L'API (`/sync/push`, `/sync/pull`) vit dans un
-autre dépôt et est développée par une autre partie de l'équipe : le contrat entre les deux est
-documenté dans `docs/SYNC-CONTRACT.md`, qui fait foi. Ne jamais modifier le contrat côté client
-sans l'avoir fait valider côté backend.
+autre dépôt et est développée par une autre partie de l'équipe : le contrat du prototype est
+défini dans `src/shared/types.ts`. Ne jamais modifier le contrat côté client sans l'avoir fait
+valider côté backend.
 
 Suivi de l'avancement : GitHub Project **« StageOps Mobile — Roadmap »** (milestones = phases).
 Dernier audit complet : `docs/audits/2026-09-etat-avancement.md` (photographie datée, non
@@ -36,9 +37,7 @@ maintenue).
 - **Réseau** : `fetch` encapsulé dans `src/infra/api/httpClient.ts` (timeout, erreurs typées),
   connectivité via `@react-native-community/netinfo`
 - **Identifiants** : UUID v4 via `expo-crypto` (`src/shared/ids.ts`)
-- **Qualité** : ESLint 9 (flat config, `eslint-config-expo`) + Prettier, tests Jest +
-  `@testing-library/react-native`
-- **CI** : GitHub Actions (typecheck, lint, format:check, test)
+- **Qualité** : ESLint 9 (flat config, `eslint-config-expo`) + Prettier
 - Pas de Flutter. Le stockage SQLite + outbox décrit ici est le **prototype du MVP** : la cible
   retenue est PouchDB répliqué avec CouchDB (ADR-0001 du backend), cf. `docs/DECISIONS.md`
 
@@ -46,28 +45,33 @@ Toutes les commandes se lancent depuis `apps/mobile/`.
 
 ## Modèle de données local
 
+Règles du prototype SQLite, à remplacer lors de la migration vers PouchDB (cf. `docs/DECISIONS.md`).
+
 Le schéma est défini dans `src/infra/db/schema.ts` et documenté dans @docs/SCHEMA.md — le lire
 avant toute modification touchant à la base. Points à retenir :
 
-- 4 tables : `equipment`, `incidents`, `outbox_events`, `sync_state` (clé/valeur : version du
-  schéma, curseur, dernière sync)
 - Timestamps toujours en **INTEGER epoch ms** ; suppression toujours **logique** via `deleted_at`
 - Identifiants générés côté client (UUID v4) : une entité créée hors ligne a déjà son id définitif
-- Résolution de conflits : **last write wins** sur `updated_at` (dans le `ON CONFLICT DO UPDATE`
-  des repos). Pas de fusion. Tout changement de stratégie est une décision d'équipe.
+- Résolution de conflits : dans le prototype, la version dont l'`updated_at` est le plus récent
+  l'emporte, sans fusion (**last write wins**, dans le `ON CONFLICT DO UPDATE` des repos). Après
+  la migration vers PouchDB, les conflits passeront par le mécanisme de révisions de
+  CouchDB/PouchDB (cf. `docs/DECISIONS.md`). Tout changement de stratégie est une décision d'équipe.
 - Les énumérations (`EquipmentStatus`, `IncidentSeverity`...) et les contrats d'API ont une seule
   source de vérité : `src/shared/types.ts`
 
 ## Conventions de code
 
-- Toute évolution du schéma SQLite = **une nouvelle version de migration** dans
+Les règles marquées *(prototype SQLite)* sont à remplacer lors de la migration vers PouchDB
+(cf. `docs/DECISIONS.md`).
+
+- *(prototype SQLite)* Toute évolution du schéma SQLite = **une nouvelle version de migration** dans
   `src/infra/db/migrations.ts`. Ne jamais modifier une migration déjà mergée sur `main` : des
   appareils l'ont peut-être déjà appliquée.
-- Toute écriture métier locale produit **l'écriture en base + l'événement outbox dans la même
-  transaction** : jamais l'un sans l'autre. [À valider en équipe — vérifier l'existant]
+- *(prototype SQLite)* Toute écriture métier locale produit **l'écriture en base + l'événement
+  outbox dans la même transaction** : jamais l'un sans l'autre.
 - Les données reçues du serveur sont **validées avant d'être écrites** (`src/shared/validation.ts`),
   jamais castées directement (`as unknown as Equipment`).
-- Persistance : SQLite pour toute donnée métier. AsyncStorage uniquement pour des réglages
+- *(prototype SQLite)* Persistance : SQLite pour toute donnée métier. AsyncStorage uniquement pour des réglages
   techniques non sensibles (`device_id`). Tout secret (token d'auth) dans `expo-secure-store`.
 - Couleurs, espacements, typographies : uniquement via le thème (`src/shared/theme.ts`), jamais
   une valeur en dur dans un `StyleSheet`. L'app est en thème sombre partout.
@@ -87,19 +91,25 @@ avant toute modification touchant à la base. Points à retenir :
 
 ## Architecture applicative
 
-Détail complet dans `docs/ARCHITECTURE.md`. Règles à respecter pour tout nouveau code :
+Détail complet dans `docs/ARCHITECTURE.md`. Règles à respecter pour tout nouveau code ; les
+règles marquées *(prototype SQLite)* sont à remplacer lors de la migration vers PouchDB
+(cf. `docs/DECISIONS.md`).
 
 - Pipeline strict : écrans (`src/app/`) → use-cases (`src/features/<domaine>/usecases/`) →
-  infra (`src/infra/db/repos/`, `src/infra/sync/`, `src/infra/api/`) → SQLite / HTTP.
-  **Un écran n'importe jamais `@infra/*` directement**, il passe par un use-case. `shared/` est
-  importable par toutes les couches et n'importe rien d'autre.
-- `src/features/` est organisé **par domaine métier** (`inventory`, `incidents`, `dashboard`,
-  `sync`, `scan`, `auth`...), chacun avec `usecases/` et `ui/`. Un nouveau domaine suit ce gabarit.
+  infra (`src/infra/`) → base locale / HTTP.
+- **Un écran n'importe jamais les repositories, le moteur de sync ni le client HTTP**
+  (`@infra/db`, `@infra/sync`, `@infra/api`) : il passe par un use-case. Le logger
+  (`@infra/logging`) est importable partout. `src/shared/` est importable par toutes les couches
+  et n'importe rien d'autre.
+- Seule exception autorisée : `src/app/AppProviders.tsx`, qui ouvre la base, applique les
+  migrations et insère les données de démo au démarrage, avant d'afficher le premier écran.
+- `src/features/` est organisé **par domaine métier** (`dashboard`, `incidents`, `inventory`,
+  `sync`), chacun avec `usecases/` et `ui/`. Un nouveau domaine suit ce gabarit.
 - Composants réutilisables sans logique métier : `src/shared/ui/`. Aucun accès aux données dedans.
-- Le moteur de sync (`src/infra/sync/syncEngine.ts`) est le seul à appeler `syncApi`. Le reste de
+- *(prototype SQLite)* Le moteur de sync (`src/infra/sync/syncEngine.ts`) est le seul à appeler `syncApi`. Le reste de
   l'app déclenche une sync uniquement via `maybeSync()` (garde hors ligne + verrou intégrés) ;
   `syncNow()` est réservé au bouton manuel.
-- La sync se déclenche : au démarrage de l'app, au retour du réseau, après chaque écriture locale,
+- *(prototype SQLite)* La sync se déclenche : au démarrage de l'app, au retour du réseau, après chaque écriture locale,
   et via le timer de retry (backoff exponentiel). Tout nouveau déclencheur passe par `maybeSync()`.
 - Le client HTTP est le seul endroit où sont posés les headers (dont `Authorization`).
 
@@ -129,9 +139,9 @@ Détail complet dans `docs/ARCHITECTURE.md`. Règles à respecter pour tout nouv
 - Pas de suivi d'avancement (statuts, dates) dans `CLAUDE.md`, `docs/ARCHITECTURE.md` ou le README :
   l'avancement vit uniquement dans le GitHub Project.
 - Avant d'ajouter une info, vérifier qu'elle n'existe pas déjà ailleurs.
-- Carte des docs : `README.md` (présentation + lancement), `docs/ARCHITECTURE.md` (couches, flux),
-  `docs/SCHEMA.md` (base locale), `docs/SYNC-CONTRACT.md` (contrat avec l'API),
-  `docs/DECISIONS.md` (décisions et écarts), `docs/RUNBOOK.md` (procédures),
+- Carte des docs : `README.md` (présentation + lancement), `docs/ARCHITECTURE.md` (organisation
+  du code, architecture actuelle et cible), `docs/SCHEMA.md` (base locale),
+  `docs/DECISIONS.md` (décisions et leurs raisons), `docs/RUNBOOK.md` (procédures),
   `docs/ROADMAP.md` (planification des phases).
 
 ## Hors périmètre pour l'instant
