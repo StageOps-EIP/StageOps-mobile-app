@@ -29,7 +29,7 @@ maintenue).
 
 ## Stack technique
 
-- **Expo SDK 54** + **React Native 0.81** + **React 19**, TypeScript 5.9 en mode `strict`
+- **Expo SDK 58** + **React Native 0.88** + **React 19.3**, TypeScript 6.0 en mode `strict`
 - **Navigation** : `@react-navigation` 7 (native-stack + bottom-tabs), params entièrement typés
   (`src/app/navigation/types.ts`)
 - **Base locale** : `expo-sqlite` brut, sans ORM, mode WAL
@@ -39,7 +39,8 @@ maintenue).
 - **Qualité** : ESLint 9 (flat config, `eslint-config-expo`) + Prettier, tests Jest +
   `@testing-library/react-native`
 - **CI** : GitHub Actions (typecheck, lint, format:check, test)
-- Le choix est **tranché** : pas de Flutter, pas de PouchDB/WatermelonDB (cf. `docs/DECISIONS.md`)
+- Pas de Flutter. Le stockage SQLite + outbox décrit ici est le **prototype du MVP** : la cible
+  retenue est PouchDB répliqué avec CouchDB (ADR-0001 du backend), cf. `docs/DECISIONS.md`
 
 Toutes les commandes se lancent depuis `apps/mobile/`.
 
@@ -86,7 +87,7 @@ avant toute modification touchant à la base. Points à retenir :
 
 ## Architecture applicative
 
-Détail complet dans `ARCHITECTURE.md`. Règles à respecter pour tout nouveau code :
+Détail complet dans `docs/ARCHITECTURE.md`. Règles à respecter pour tout nouveau code :
 
 - Pipeline strict : écrans (`src/app/`) → use-cases (`src/features/<domaine>/usecases/`) →
   infra (`src/infra/db/repos/`, `src/infra/sync/`, `src/infra/api/`) → SQLite / HTTP.
@@ -125,12 +126,13 @@ Détail complet dans `ARCHITECTURE.md`. Règles à respecter pour tout nouveau c
 ## Conventions de documentation
 
 - Une doc décrit l'état actuel et les décisions durables, pas le raisonnement qui y a mené.
-- Pas de suivi d'avancement (statuts, dates) dans `CLAUDE.md`, `ARCHITECTURE.md` ou le README :
+- Pas de suivi d'avancement (statuts, dates) dans `CLAUDE.md`, `docs/ARCHITECTURE.md` ou le README :
   l'avancement vit uniquement dans le GitHub Project.
 - Avant d'ajouter une info, vérifier qu'elle n'existe pas déjà ailleurs.
-- Carte des docs : `README.md` (présentation + lancement), `ARCHITECTURE.md` (couches, flux),
+- Carte des docs : `README.md` (présentation + lancement), `docs/ARCHITECTURE.md` (couches, flux),
   `docs/SCHEMA.md` (base locale), `docs/SYNC-CONTRACT.md` (contrat avec l'API),
-  `docs/DECISIONS.md` (décisions et écarts), `docs/RUNBOOK.md` (procédures), `docs/ROADMAP.md` (organisation).
+  `docs/DECISIONS.md` (décisions et écarts), `docs/RUNBOOK.md` (procédures),
+  `docs/ROADMAP.md` (planification des phases).
 
 ## Hors périmètre pour l'instant
 
