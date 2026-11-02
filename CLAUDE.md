@@ -74,7 +74,7 @@ Les règles marquées *(prototype SQLite)* sont à remplacer lors de la migratio
 - *(prototype SQLite)* Persistance : SQLite pour toute donnée métier. AsyncStorage uniquement pour des réglages
   techniques non sensibles (`device_id`). Tout secret (token d'auth) dans `expo-secure-store`.
 - Couleurs, espacements, typographies : uniquement via le thème (`src/shared/theme.ts`), jamais
-  une valeur en dur dans un `StyleSheet`. L'app est en thème sombre partout.
+  une valeur en dur dans un `StyleSheet`. Tous les écrans utilisent le thème sombre.
 - Formatage des dates/durées : uniquement via `src/shared/time.ts`, pas de fonction locale à
   un écran.
 - Tout handler asynchrone déclenché par l'utilisateur (bouton, pull-to-refresh) a un `catch`
