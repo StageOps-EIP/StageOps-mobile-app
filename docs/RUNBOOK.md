@@ -49,6 +49,8 @@ npx expo-doctor
 
 ## Ajouter une migration SQLite
 
+Règles du prototype SQLite, à remplacer lors de la migration vers PouchDB (cf. `docs/DECISIONS.md`).
+
 1. Dans `src/infra/db/schema.ts`, déclarer les instructions SQL de la nouvelle version dans un
    tableau `MIGRATION_V<N>: string[]`, et passer `SCHEMA_VERSION` à `<N>` : c'est la version
    cible.
