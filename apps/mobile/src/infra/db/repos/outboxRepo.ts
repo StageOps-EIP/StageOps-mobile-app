@@ -12,9 +12,7 @@ import { SYNC_MAX_EVENT_ATTEMPTS } from '@shared/constants';
  *
  * @param limit  Maximum number of events to return (default: no limit).
  */
-export async function getPendingEvents(
-  limit = 1_000,
-): Promise<OutboxEvent[]> {
+export async function getPendingEvents(limit = 1_000): Promise<OutboxEvent[]> {
   return getAll<OutboxEvent>(
     `SELECT * FROM outbox_events
       WHERE status = 'PENDING'
@@ -29,9 +27,7 @@ export async function getPendingEvents(
  * Returns all events regardless of status — useful for the SyncQueue screen.
  */
 export async function getAllEvents(): Promise<OutboxEvent[]> {
-  return getAll<OutboxEvent>(
-    `SELECT * FROM outbox_events ORDER BY created_at DESC`,
-  );
+  return getAll<OutboxEvent>(`SELECT * FROM outbox_events ORDER BY created_at DESC`);
 }
 
 // ─────────────────────────────────────────────
@@ -46,13 +42,7 @@ export async function enqueue(event: OutboxEvent): Promise<void> {
     `INSERT INTO outbox_events
        (event_id, device_id, type, payload_json, created_at, status, last_error, attempt_count)
      VALUES (?, ?, ?, ?, ?, 'PENDING', NULL, 0)`,
-    [
-      event.event_id,
-      event.device_id,
-      event.type,
-      event.payload_json,
-      event.created_at,
-    ],
+    [event.event_id, event.device_id, event.type, event.payload_json, event.created_at],
   );
 }
 
@@ -73,10 +63,7 @@ export async function markSent(eventId: string): Promise<void> {
  * - If attempt_count + 1 >= SYNC_MAX_EVENT_ATTEMPTS the status becomes FAILED.
  * - Otherwise it stays PENDING so it will be retried on the next sync.
  */
-export async function markFailed(
-  eventId: string,
-  error: string,
-): Promise<void> {
+export async function markFailed(eventId: string, error: string): Promise<void> {
   await run(
     `UPDATE outbox_events
         SET attempt_count = attempt_count + 1,
@@ -102,4 +89,3 @@ export async function resetEvent(eventId: string): Promise<void> {
     [eventId],
   );
 }
-

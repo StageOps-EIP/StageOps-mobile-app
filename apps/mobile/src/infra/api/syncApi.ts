@@ -23,7 +23,7 @@ export async function pushEvents(
 ): Promise<SyncPushResponse> {
   const body: SyncPushRequest = {
     device_id: deviceId,
-    events: events.map((e) => ({
+    events: events.map(e => ({
       event_id: e.event_id,
       type: e.type,
       created_at: e.created_at,
@@ -44,10 +44,7 @@ export async function pushEvents(
  * Fetches all changes the server has seen since the given cursor.
  * The server returns a new `next_cursor` to persist locally.
  */
-export async function pullDeltas(
-  cursor: string,
-): Promise<SyncPullResponse> {
+export async function pullDeltas(cursor: string): Promise<SyncPullResponse> {
   const params = new URLSearchParams({ cursor });
   return get<SyncPullResponse>(`${API_BASE_URL}/sync/pull?${params.toString()}`);
 }
-

@@ -36,9 +36,7 @@ export const EMPTY_FILTER: InventoryFilter = {
  * Returns equipment matching the given filter.
  * All reads are local-only — no network required.
  */
-export async function getFilteredEquipment(
-  filter: InventoryFilter,
-): Promise<Equipment[]> {
+export async function getFilteredEquipment(filter: InventoryFilter): Promise<Equipment[]> {
   return listEquipment({
     search: filter.search || undefined,
     status: filter.status ?? undefined,
@@ -49,9 +47,7 @@ export async function getFilteredEquipment(
 /**
  * Returns a single equipment item by id, or null if not found.
  */
-export async function fetchEquipmentById(
-  id: string,
-): Promise<Equipment | null> {
+export async function fetchEquipmentById(id: string): Promise<Equipment | null> {
   return getEquipmentById(id);
 }
 

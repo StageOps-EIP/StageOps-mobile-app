@@ -43,10 +43,7 @@ export function getDatabase(): SQLite.SQLiteDatabase {
  * Execute a write query (INSERT / UPDATE / DELETE / CREATE).
  * Returns the native run result (lastInsertRowId, changes).
  */
-export async function run(
-  sql: string,
-  params: SQLiteBindParams = [],
-): Promise<SQLiteRunResult> {
+export async function run(sql: string, params: SQLiteBindParams = []): Promise<SQLiteRunResult> {
   const db = getDatabase();
   try {
     log.debug(TAG, 'run', { sql, params });
@@ -121,4 +118,3 @@ export async function transaction(
     throw err;
   }
 }
-

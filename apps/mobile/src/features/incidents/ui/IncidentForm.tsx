@@ -20,9 +20,9 @@ const SEVERITY_OPTIONS: {
   color: string;
   bg: string;
 }[] = [
-  { value: 'FAIBLE',  label: 'Faible',  color: '#86efac', bg: '#14532d' },
+  { value: 'FAIBLE', label: 'Faible', color: '#86efac', bg: '#14532d' },
   { value: 'MOYENNE', label: 'Moyenne', color: '#fcd34d', bg: '#451a03' },
-  { value: 'ELEVEE',  label: 'Élevée',  color: '#fca5a5', bg: '#450a0a' },
+  { value: 'ELEVEE', label: 'Élevée', color: '#fca5a5', bg: '#450a0a' },
 ];
 
 // ─────────────────────────────────────────────
@@ -57,7 +57,7 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
   const [equipmentId, setEquipmentId] = useState(initialEquipmentId ?? '');
 
   const set = <K extends keyof IncidentFormState>(key: K, value: IncidentFormState[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm(prev => ({ ...prev, [key]: value }));
 
   const canSubmit = form.title.trim().length > 0 && !submitting;
 
@@ -79,10 +79,10 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
         style={styles.input}
         value={equipmentId}
         onChangeText={setEquipmentId}
-        placeholder='ID équipement (optionnel)'
-        placeholderTextColor='#475569'
+        placeholder="ID équipement (optionnel)"
+        placeholderTextColor="#475569"
         autoCorrect={false}
-        autoCapitalize='none'
+        autoCapitalize="none"
         editable={!submitting}
       />
 
@@ -91,17 +91,17 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
       <TextInput
         style={styles.input}
         value={form.title}
-        onChangeText={(v) => set('title', v)}
-        placeholder='Ex : Console lumière HS'
-        placeholderTextColor='#475569'
-        returnKeyType='next'
+        onChangeText={v => set('title', v)}
+        placeholder="Ex : Console lumière HS"
+        placeholderTextColor="#475569"
+        returnKeyType="next"
         editable={!submitting}
       />
 
       {/* Severity */}
       <Text style={styles.label}>Sévérité</Text>
       <View style={styles.severityRow}>
-        {SEVERITY_OPTIONS.map((opt) => {
+        {SEVERITY_OPTIONS.map(opt => {
           const active = form.severity === opt.value;
           return (
             <TouchableOpacity
@@ -115,10 +115,7 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
             >
               <View style={[styles.severityDot, { backgroundColor: opt.color }]} />
               <Text
-                style={[
-                  styles.severityLabel,
-                  active && { color: opt.color, fontWeight: '700' },
-                ]}
+                style={[styles.severityLabel, active && { color: opt.color, fontWeight: '700' }]}
               >
                 {opt.label}
               </Text>
@@ -132,12 +129,12 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
       <TextInput
         style={[styles.input, styles.textarea]}
         value={form.description}
-        onChangeText={(v) => set('description', v)}
+        onChangeText={v => set('description', v)}
         placeholder="Détail de l'incident…"
-        placeholderTextColor='#475569'
+        placeholderTextColor="#475569"
         multiline
         numberOfLines={4}
-        textAlignVertical='top'
+        textAlignVertical="top"
         editable={!submitting}
       />
 
@@ -152,7 +149,7 @@ export function IncidentForm({ initialEquipmentId, submitting, error, onSubmit }
         activeOpacity={0.8}
       >
         {submitting ? (
-          <ActivityIndicator color='#0f172a' size='small' />
+          <ActivityIndicator color="#0f172a" size="small" />
         ) : (
           <Text style={styles.buttonText}>Enregistrer</Text>
         )}
@@ -242,4 +239,3 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-

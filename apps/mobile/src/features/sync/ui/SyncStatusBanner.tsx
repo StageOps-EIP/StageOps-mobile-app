@@ -9,7 +9,7 @@ import { getLastSyncAt } from '@infra/db/repos/syncStateRepo';
 
 function formatRelative(ts: number): string {
   const diff = Math.floor((Date.now() - ts) / 1000); // seconds
-  if (diff < 5) return 'à l\'instant';
+  if (diff < 5) return "à l'instant";
   if (diff < 60) return `il y a ${diff}s`;
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `il y a ${mins} min`;
@@ -95,4 +95,3 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
 });
-

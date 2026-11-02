@@ -36,7 +36,7 @@ export function InventoryScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       load(filter);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [load]),
   );
 
@@ -100,4 +100,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
-

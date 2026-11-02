@@ -30,14 +30,14 @@ const STATUS_OPTIONS: {
   color: string;
   bg: string;
 }[] = [
-  { value: 'OK',            label: 'OK',            color: '#86efac', bg: '#14532d' },
-  { value: 'A_VERIFIER',    label: 'À vérifier',    color: '#fcd34d', bg: '#451a03' },
-  { value: 'HS',            label: 'Hors service',  color: '#fca5a5', bg: '#450a0a' },
+  { value: 'OK', label: 'OK', color: '#86efac', bg: '#14532d' },
+  { value: 'A_VERIFIER', label: 'À vérifier', color: '#fcd34d', bg: '#451a03' },
+  { value: 'HS', label: 'Hors service', color: '#fca5a5', bg: '#450a0a' },
   { value: 'EN_REPARATION', label: 'En réparation', color: '#7dd3fc', bg: '#0c2240' },
 ];
 
 function getStatusMeta(s: EquipmentStatus) {
-  return STATUS_OPTIONS.find((o) => o.value === s) ?? STATUS_OPTIONS[0];
+  return STATUS_OPTIONS.find(o => o.value === s) ?? STATUS_OPTIONS[0];
 }
 
 // ─────────────────────────────────────────────
@@ -58,25 +58,17 @@ function StatusPickerModal({
   onClose: () => void;
 }) {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='slide'
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={pickerStyles.backdrop} onPress={onClose} />
       <View style={pickerStyles.sheet}>
         <View style={pickerStyles.handle} />
         <Text style={pickerStyles.sheetTitle}>Changer le statut</Text>
-        {STATUS_OPTIONS.map((opt) => {
+        {STATUS_OPTIONS.map(opt => {
           const isActive = opt.value === current;
           return (
             <TouchableOpacity
               key={opt.value}
-              style={[
-                pickerStyles.option,
-                isActive && { backgroundColor: opt.bg },
-              ]}
+              style={[pickerStyles.option, isActive && { backgroundColor: opt.bg }]}
               onPress={() => onSelect(opt.value)}
               disabled={saving}
             >
@@ -89,12 +81,8 @@ function StatusPickerModal({
               >
                 {opt.label}
               </Text>
-              {isActive && !saving && (
-                <Ionicons name='checkmark' size={18} color={opt.color} />
-              )}
-              {isActive && saving && (
-                <ActivityIndicator size='small' color={opt.color} />
-              )}
+              {isActive && !saving && <Ionicons name="checkmark" size={18} color={opt.color} />}
+              {isActive && saving && <ActivityIndicator size="small" color={opt.color} />}
             </TouchableOpacity>
           );
         })}
@@ -210,14 +198,23 @@ export function EquipmentDetailsScreen({ route, navigation }: Props) {
       setLoading(true);
       setNotFound(false);
       fetchEquipmentById(equipmentId)
-        .then((eq) => {
+        .then(eq => {
           if (cancelled) return;
-          if (!eq) { setNotFound(true); }
-          else { setEquipment(eq); }
+          if (!eq) {
+            setNotFound(true);
+          } else {
+            setEquipment(eq);
+          }
         })
-        .catch(() => { if (!cancelled) setNotFound(true); })
-        .finally(() => { if (!cancelled) setLoading(false); });
-      return () => { cancelled = true; };
+        .catch(() => {
+          if (!cancelled) setNotFound(true);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+      return () => {
+        cancelled = true;
+      };
     }, [equipmentId]),
   );
 
@@ -250,7 +247,7 @@ export function EquipmentDetailsScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={[screenStyles.centered, { paddingTop: insets.top }]}>
-        <ActivityIndicator color='#38bdf8' size='large' />
+        <ActivityIndicator color="#38bdf8" size="large" />
       </View>
     );
   }
@@ -258,7 +255,7 @@ export function EquipmentDetailsScreen({ route, navigation }: Props) {
   if (notFound || !equipment) {
     return (
       <View style={[screenStyles.centered, { paddingTop: insets.top }]}>
-        <Ionicons name='cube-outline' size={40} color='#334155' />
+        <Ionicons name="cube-outline" size={40} color="#334155" />
         <Text style={screenStyles.notFoundText}>Équipement introuvable</Text>
       </View>
     );
@@ -287,35 +284,26 @@ export function EquipmentDetailsScreen({ route, navigation }: Props) {
 
         {/* Fields */}
         <View style={screenStyles.card}>
-          <Field label='Localisation' value={equipment.location} />
-          <Field label='Catégorie'    value={equipment.category} />
-          <Field label='QR Code'      value={equipment.qr_code} />
+          <Field label="Localisation" value={equipment.location} />
+          <Field label="Catégorie" value={equipment.category} />
+          <Field label="QR Code" value={equipment.qr_code} />
           {equipment.responsible_name && (
-            <Field label='Responsable' value={equipment.responsible_name} />
+            <Field label="Responsable" value={equipment.responsible_name} />
           )}
-          {equipment.notes && (
-            <Field label='Notes' value={equipment.notes} />
-          )}
+          {equipment.notes && <Field label="Notes" value={equipment.notes} />}
         </View>
 
         {/* Save error */}
-        {saveError && (
-          <Text style={screenStyles.errorText}>{saveError}</Text>
-        )}
+        {saveError && <Text style={screenStyles.errorText}>{saveError}</Text>}
       </ScrollView>
 
       {/* Bottom action bar */}
-      <View
-        style={[
-          screenStyles.actionBar,
-          { paddingBottom: insets.bottom + 12 },
-        ]}
-      >
+      <View style={[screenStyles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
         <TouchableOpacity
           style={[screenStyles.btn, screenStyles.btnSecondary]}
           onPress={() => setPickerOpen(true)}
         >
-          <Ionicons name='swap-horizontal-outline' size={18} color='#e2e8f0' />
+          <Ionicons name="swap-horizontal-outline" size={18} color="#e2e8f0" />
           <Text style={screenStyles.btnText}>Changer statut</Text>
         </TouchableOpacity>
 
@@ -323,10 +311,8 @@ export function EquipmentDetailsScreen({ route, navigation }: Props) {
           style={[screenStyles.btn, screenStyles.btnDanger]}
           onPress={handleReportIncident}
         >
-          <Ionicons name='flame-outline' size={18} color='#0f172a' />
-          <Text style={[screenStyles.btnText, screenStyles.btnTextDark]}>
-            Signaler incident
-          </Text>
+          <Ionicons name="flame-outline" size={18} color="#0f172a" />
+          <Text style={[screenStyles.btnText, screenStyles.btnTextDark]}>Signaler incident</Text>
         </TouchableOpacity>
       </View>
 

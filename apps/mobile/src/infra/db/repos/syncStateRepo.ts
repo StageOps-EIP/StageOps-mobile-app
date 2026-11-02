@@ -6,10 +6,7 @@ import type { SyncState } from '@shared/types';
 // ─────────────────────────────────────────────
 
 export async function getSyncValue(key: string): Promise<string | null> {
-  const row = await getFirst<SyncState>(
-    'SELECT value FROM sync_state WHERE key = ?',
-    [key],
-  );
+  const row = await getFirst<SyncState>('SELECT value FROM sync_state WHERE key = ?', [key]);
   return row?.value ?? null;
 }
 
@@ -49,4 +46,3 @@ export async function getLastSyncAt(): Promise<number | null> {
 export async function setLastSyncAt(ts: number): Promise<void> {
   return setSyncValue(KEY_LAST_SYNC, String(ts));
 }
-

@@ -30,10 +30,7 @@ export async function listRecentIncidents(limit: number): Promise<Incident[]> {
 
 /** Returns a single incident row or null. */
 export async function getIncidentById(id: string): Promise<Incident | null> {
-  return getFirst<Incident>(
-    `SELECT * FROM incidents WHERE id = ?`,
-    [id],
-  );
+  return getFirst<Incident>(`SELECT * FROM incidents WHERE id = ?`, [id]);
 }
 
 // ─────────────────────────────────────────────
@@ -103,13 +100,10 @@ export async function upsertIncident(inc: Incident): Promise<void> {
 /**
  * Soft-delete: sets deleted_at to the given timestamp.
  */
-export async function softDeleteIncident(
-  id: string,
-  deletedAt: number,
-): Promise<void> {
-  await run(
-    `UPDATE incidents SET deleted_at = ?, updated_at = ? WHERE id = ?`,
-    [deletedAt, deletedAt, id],
-  );
+export async function softDeleteIncident(id: string, deletedAt: number): Promise<void> {
+  await run(`UPDATE incidents SET deleted_at = ?, updated_at = ? WHERE id = ?`, [
+    deletedAt,
+    deletedAt,
+    id,
+  ]);
 }
-
