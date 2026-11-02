@@ -1,0 +1,7 @@
+# Dépendances (dans tout le dépôt)
+node_modules/
+
+# Fichiers d'environnement locaux : seul .env.example est versionné
+.env
+.env.*
+!.env.example
