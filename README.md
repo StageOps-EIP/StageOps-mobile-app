@@ -35,13 +35,13 @@ Le moteur de synchronisation permet :
 - résolution de conflits
 - stockage local
 
-Technologies possibles :
-- PouchDB
-- WatermelonDB
+Technologie retenue : PouchDB, répliqué avec CouchDB côté serveur (ADR-0001 du backend).
+
+État actuel : prototype SQLite (`expo-sqlite`) avec une file d’événements locale. La migration vers PouchDB est décrite dans le wiki : [Migration PouchDB / CouchDB](https://github.com/StageOps-EIP/StageOps/wiki/Migration-PouchDB-CouchDB).
 
 ## Stack technique
 
-- React Native ou Flutter
+- React Native (Expo)
 - API StageOps
 - Architecture mobile modulaire
 
