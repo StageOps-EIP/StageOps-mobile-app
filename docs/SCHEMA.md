@@ -1,9 +1,103 @@
 # Schéma des données — StageOps Mobile
 
-Ce document décrit les données que l'application manipule et comment elles sont reliées entre
-elles. Comme [ARCHITECTURE.md](../ARCHITECTURE.md), il décrit la version **visée**.
+Ce document décrit la base locale de l'application, en deux parties :
 
-## Comment sont rangées les données
+- **Base actuelle** : le prototype SQLite, à remplacer lors de la migration vers PouchDB
+  (cf. [`DECISIONS.md`](DECISIONS.md)).
+- **Modèle cible** : les fiches PouchDB, répliquées avec CouchDB côté serveur.
+
+L'organisation du code et des deux architectures est décrite dans
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+## Base actuelle (prototype SQLite)
+
+Le schéma est défini dans `apps/mobile/src/infra/db/schema.ts`. Version actuelle : **1**
+(`SCHEMA_VERSION`). La version appliquée sur le téléphone est stockée dans `sync_state` (clé
+`schema_version`) ; `migrate()` (`src/infra/db/migrations.ts`) applique les versions manquantes
+à chaque démarrage. Pour ajouter une version : [`RUNBOOK.md`](RUNBOOK.md#ajouter-une-migration-sqlite).
+
+Conventions :
+
+- Dates en `INTEGER`, en millisecondes depuis le 1er janvier 1970 (epoch ms).
+- Suppression logique : une ligne supprimée garde ses données et reçoit une date dans
+  `deleted_at`.
+- Identifiants générés sur le téléphone (UUID v4) : une fiche créée hors ligne a déjà son
+  identifiant définitif.
+- Les valeurs possibles des colonnes textuelles (états, gravités…) ont une seule source de
+  vérité : `src/shared/types.ts`. Elles sont rappelées ci-dessous.
+
+### `equipment` — l'inventaire du matériel
+
+| Colonne | Type | Contraintes | Description |
+|---|---|---|---|
+| `id` | TEXT | clé primaire | Identifiant de l'équipement. |
+| `name` | TEXT | obligatoire | Nom de l'équipement. |
+| `category` | TEXT | obligatoire | `SON`, `LUMIERE`, `VIDEO`, `PLATEAU`, `SECURITE` ou `ACCROCHE`. |
+| `qr_code` | TEXT | obligatoire, unique | Code du QR code collé sur l'équipement. |
+| `location` | TEXT | obligatoire | Emplacement. |
+| `status` | TEXT | obligatoire, défaut `OK` | `OK`, `A_VERIFIER`, `HS` ou `EN_REPARATION`. |
+| `responsible_name` | TEXT | | Personne responsable. |
+| `last_check_at` | INTEGER | | Date de la dernière vérification. |
+| `notes` | TEXT | | Remarques libres. |
+| `updated_at` | INTEGER | obligatoire | Date de dernière modification. |
+| `deleted_at` | INTEGER | | Date de suppression logique. |
+
+### `incidents` — les incidents déclarés
+
+| Colonne | Type | Contraintes | Description |
+|---|---|---|---|
+| `id` | TEXT | clé primaire | Identifiant de l'incident. |
+| `equipment_id` | TEXT | | Équipement concerné (facultatif, sans clé étrangère). |
+| `title` | TEXT | obligatoire | Résumé du problème. |
+| `severity` | TEXT | obligatoire, défaut `FAIBLE` | `FAIBLE`, `MOYENNE` ou `ELEVEE`. |
+| `status` | TEXT | obligatoire, défaut `OPEN` | `OPEN`, `IN_PROGRESS` ou `RESOLVED`. |
+| `description` | TEXT | | Détail du problème. |
+| `created_by` | TEXT | | Auteur (identifiant de l'appareil). |
+| `created_at` | INTEGER | obligatoire | Date de création. |
+| `updated_at` | INTEGER | obligatoire | Date de dernière modification. |
+| `deleted_at` | INTEGER | | Date de suppression logique. |
+
+### `outbox_events` — les modifications en attente d'envoi
+
+Chaque modification locale y ajoute un événement, envoyé au serveur à la synchronisation.
+
+| Colonne | Type | Contraintes | Description |
+|---|---|---|---|
+| `event_id` | TEXT | clé primaire | Identifiant de l'événement. |
+| `device_id` | TEXT | obligatoire | Appareil qui a produit l'événement. |
+| `type` | TEXT | obligatoire | `EQUIPMENT_UPDATE_STATUS`, `EQUIPMENT_UPDATE`, `INCIDENT_CREATE` ou `INCIDENT_UPDATE`. |
+| `payload_json` | TEXT | obligatoire | Contenu de la modification, en JSON. |
+| `created_at` | INTEGER | obligatoire | Date de création de l'événement. |
+| `status` | TEXT | obligatoire, défaut `PENDING` | `PENDING`, `SENT` ou `FAILED`. |
+| `last_error` | TEXT | | Dernière erreur d'envoi. |
+| `attempt_count` | INTEGER | obligatoire, défaut `0` | Nombre de tentatives d'envoi. |
+
+### `sync_state` — informations techniques (clé / valeur)
+
+| Colonne | Type | Contraintes | Description |
+|---|---|---|---|
+| `key` | TEXT | clé primaire | Nom de l'information. |
+| `value` | TEXT | obligatoire | Valeur, stockée en texte. |
+| `updated_at` | INTEGER | obligatoire | Date de dernière modification. |
+
+Clés utilisées : `schema_version` (version du schéma appliquée), `cursor` (position de la
+dernière récupération des changements du serveur), `last_sync_at` (date de la dernière
+synchronisation réussie).
+
+### Index
+
+| Index | Table | Colonnes |
+|---|---|---|
+| `idx_equipment_status` | `equipment` | `status` |
+| `idx_equipment_category` | `equipment` | `category` |
+| `idx_equipment_updated` | `equipment` | `updated_at` |
+| `idx_incidents_status` | `incidents` | `status` |
+| `idx_incidents_equipment` | `incidents` | `equipment_id` |
+| `idx_outbox_status` | `outbox_events` | `status`, `created_at` |
+
+## Modèle cible (PouchDB / CouchDB)
+
+### Comment sont rangées les données
 
 L'application stocke ses données dans **PouchDB** sur le téléphone, synchronisé avec **CouchDB**
 sur le serveur. Ces bases n'ont pas de tables comme une base classique : chaque élément (un
@@ -13,7 +107,7 @@ fiches d'un même type jouent le rôle d'une table.
 Les données sont celles du serveur : ce document reprend les champs définis par le backend, avec
 leur nom technique entre parenthèses quand il est utile aux développeurs.
 
-### Ce que toutes les fiches ont en commun
+#### Ce que toutes les fiches ont en commun
 
 | Champ | Description |
 |---|---|
@@ -22,7 +116,7 @@ leur nom technique entre parenthèses quand il est utile aux développeurs.
 | Type (`type`) | Le type de fiche : projet, matériel, incident… C'est ce qui remplace le nom de la table. |
 | Théâtre (`theatre_id`) | Le théâtre auquel appartient la fiche. Un téléphone ne reçoit que les fiches de son théâtre. |
 
-## Vue d'ensemble
+### Vue d'ensemble
 
 ```mermaid
 erDiagram
@@ -41,9 +135,9 @@ erDiagram
 incidents ; un incident peut concerner un équipement. Les événements dépendent du théâtre, pas
 d'un projet, et peuvent mobiliser du matériel et des membres de l'équipe.
 
-## Les types de fiches
+### Les types de fiches
 
-### Module
+#### Module
 
 > **À quoi ça sert** : les modules sont les trois métiers du théâtre : lumière, son et plateau.
 > Cette fiche indique si un métier est activé pour tout le théâtre. Elle permet à l'application
@@ -55,7 +149,7 @@ d'un projet, et peuvent mobiliser du matériel et des membres de l'équipe.
 | Actif (`active`) | Oui ou non. |
 | Dernière modification (`updated_at`) | Date du dernier changement. |
 
-### Projet
+#### Projet
 
 > **À quoi ça sert** : un projet représente une production du théâtre (un spectacle, un
 > festival…) sur une période donnée. C'est le point d'entrée de l'application : le technicien
@@ -69,7 +163,7 @@ d'un projet, et peuvent mobiliser du matériel et des membres de l'équipe.
 | Modules du projet (`modules_config`) | Lumière, son et/ou plateau activés pour ce projet. Un module désactivé reste consultable, mais on ne peut plus rien y créer ni modifier. |
 | Création / dernière modification (`created_at`, `updated_at`) | Dates gérées par le serveur. |
 
-### Matériel
+#### Matériel
 
 > **À quoi ça sert** : chaque fiche matériel décrit un équipement utilisé sur un projet (un
 > projecteur, une console, une enceinte…). C'est l'inventaire du technicien : il y consulte
@@ -102,7 +196,7 @@ Types d'appareils possibles selon le module :
 Le serveur stocke aussi une position 3D (`position`) ; elle n'est pas utilisée par l'application
 mobile.
 
-### Incident
+#### Incident
 
 > **À quoi ça sert** : un incident est un problème signalé sur le terrain (un projecteur qui ne
 > répond plus, un câble défectueux…). Il permet de prévenir l'équipe, de suivre le problème
@@ -124,7 +218,7 @@ mobile.
 | Photos (`images`) | Photos jointes à l'incident. |
 | Création / dernière modification (`created_at`, `updated_at`) | Dates gérées par le serveur. |
 
-### Événement
+#### Événement
 
 > **À quoi ça sert** : un événement est un moment de la vie du théâtre (une représentation, un
 > concert…) avec ses étapes, du montage au démontage. L'application les affiche pour que le
@@ -140,7 +234,7 @@ mobile.
 | Matériel (`equipmentIds`) | Les équipements mobilisés. |
 | Équipe (`teamMembers`) | Les membres de l'équipe mobilisés. |
 
-### Membre d'équipe
+#### Membre d'équipe
 
 > **À quoi ça sert** : une fiche membre d'équipe décrit une personne de l'équipe technique, pour
 > savoir qui fait quoi et qui contacter. Ce n'est **pas** un compte : une personne peut avoir une
@@ -154,30 +248,11 @@ mobile.
 | Email (`email`) et téléphone (`phone`) | Pour la contacter. Le téléphone est facultatif. |
 | Permissions (`permissions`) | Liste des droits associés à la fiche. |
 
-## Ce qui ne va jamais sur le téléphone
+### Ce qui ne va jamais sur le téléphone
 
 Les **comptes**, les **sessions de connexion**, la liste des **téléphones autorisés** et
 l'**historique de sécurité** restent uniquement sur le serveur. Ils ne sont jamais copiés dans la
 base du téléphone.
 
 Le téléphone garde seulement, dans son stockage sécurisé, de quoi rester connecté et son
-autorisation hors ligne (voir [ARCHITECTURE.md](../ARCHITECTURE.md#connexion-et-sécurité)).
-
-## À signaler à l'équipe backend
-
-- Les **événements** ne sont rattachés à aucun projet, contrairement au matériel et aux
-  incidents.
-- Les **événements** n'écrivent pas leurs noms de champs comme les autres fiches (`startDate`
-  au lieu de `start_date`) et n'ont pas de dates de création ni de modification.
-
-## Aujourd'hui dans le MVP
-
-Le code actuel utilise une base SQLite, avec de vraies tables. Elles seront remplacées par les
-fiches décrites plus haut.
-
-| Table | À quoi elle sert |
-|---|---|
-| `equipment` | L'inventaire du matériel, sans notion de projet ni de module. |
-| `incidents` | Les incidents déclarés, avec des gravités et des statuts différents de ceux du serveur. |
-| `outbox_events` | La file d'attente des modifications faites hors ligne, en attente d'envoi au serveur. Avec PouchDB, elle disparaît : la synchronisation s'en charge. |
-| `sync_state` | Des informations techniques sur la synchronisation, comme la date de la dernière synchronisation. |
+autorisation hors ligne (voir [ARCHITECTURE.md](ARCHITECTURE.md#connexion-et-sécurité)).
