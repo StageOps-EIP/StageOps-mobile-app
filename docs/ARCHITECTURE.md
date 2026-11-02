@@ -1,22 +1,102 @@
 # Architecture — StageOps Mobile
 
-StageOps Mobile est l'application terrain des techniciens lumière, son et plateau d'un théâtre.
-Elle doit fonctionner même sans réseau : en coulisses ou en salle, la connexion est souvent
-absente ou instable.
+StageOps Mobile est l'application terrain des techniciens de spectacle. Elle doit fonctionner
+même sans réseau : en coulisses ou en salle, la connexion est souvent absente ou instable.
 
-Ce document décrit l'architecture **visée**. Le code actuel est une première version (MVP) qui
-va évoluer vers elle ; les écarts sont listés à la fin.
+Ce document décrit l'organisation du code, puis deux architectures :
 
-## En bref
+- l'**architecture actuelle** : le prototype du MVP, qui stocke ses données dans SQLite avec une
+  file d'attente (outbox) ;
+- l'**architecture cible** : PouchDB sur le téléphone, répliqué avec CouchDB côté serveur.
 
-- L'application enregistre tout **d'abord sur le téléphone**, puis se synchronise avec le serveur
-  dès que le réseau est là.
-- Le téléphone stocke ses données dans **PouchDB**, une base qui sait se synchroniser toute seule
-  avec **CouchDB**, la base du serveur.
-- La connexion et les comptes passent par l'**API StageOps** (le backend, dans un autre dépôt).
-- Le code est rangé en trois couches : les écrans, la logique métier et la partie technique.
+La décision et sa raison sont dans [`DECISIONS.md`](DECISIONS.md) ; le plan de migration est
+décrit dans le wiki : [Migration PouchDB / CouchDB](https://github.com/StageOps-EIP/StageOps/wiki/Migration-PouchDB-CouchDB).
+Le détail des données est dans [`SCHEMA.md`](SCHEMA.md).
 
-## Ce que fait l'application
+Dans les deux cas, l'idée clé est la même : l'application lit et écrit **toujours** dans la base
+du téléphone. Le réseau n'intervient qu'en arrière-plan, pour synchroniser.
+
+## Organisation du code
+
+Le code vit dans `apps/mobile/src/`, rangé en couches :
+
+| Couche | Dossier | Rôle |
+|---|---|---|
+| Écrans | `src/app/` | Ce que le technicien voit et touche : les écrans et la navigation. |
+| Logique métier | `src/features/` | Les règles de l'application, avec un dossier par domaine métier, chacun avec `usecases/` et `ui/`. |
+| Technique | `src/infra/` | La base du téléphone, la synchronisation, les appels au serveur et les logs. |
+| Commun | `src/shared/` | Les types, constantes et petits outils utilisés par toutes les couches. |
+
+### Règle des couches
+
+Chaque couche n'utilise que la couche juste en dessous : écrans → logique métier → technique.
+
+- Un écran n'importe jamais les repositories, le moteur de sync ni le client HTTP (`@infra/db`,
+  `@infra/sync`, `@infra/api`) : il passe par un use-case.
+- Le logger (`@infra/logging`) est importable partout.
+- `src/shared/` est importable par toutes les couches et n'importe rien d'autre.
+- Seule exception autorisée : `src/app/AppProviders.tsx`, qui ouvre la base, applique les
+  migrations et insère les données de démo au démarrage, avant d'afficher le premier écran.
+
+Ainsi, les écrans restent simples et la logique peut être testée seule.
+
+## Architecture actuelle (prototype SQLite)
+
+### Ce que fait l'application
+
+| Domaine (`src/features/`) | Ce que le technicien peut faire |
+|---|---|
+| `dashboard` | Voir les chiffres clés de l'inventaire et des incidents, et les derniers incidents. |
+| `inventory` | Consulter l'inventaire, filtrer le matériel, voir la fiche d'un équipement et changer son état. |
+| `incidents` | Déclarer un incident, éventuellement lié à un équipement. |
+| `sync` | Voir l'état de la synchronisation, la file des modifications en attente, relancer un envoi en échec. |
+
+### Vue d'ensemble
+
+```mermaid
+flowchart TD
+    T["Technicien sur le terrain"]
+
+    subgraph Telephone["Téléphone"]
+        E["Écrans — src/app/"]
+        L["Use-cases — src/features/"]
+        subgraph Technique["Technique — src/infra/"]
+            B[("SQLite<br/>tables métier + outbox_events")]
+            S["Moteur de sync<br/>syncEngine"]
+            C["Client HTTP"]
+        end
+    end
+
+    A["API StageOps<br/>/sync/push, /sync/pull<br/>autre dépôt"]
+
+    T --> E
+    E --> L
+    L --> B
+    L -->|maybeSync| S
+    S --> B
+    S --> C
+    C -.->|Internet| A
+```
+
+### Fonctionnement hors ligne
+
+1. Chaque modification est enregistrée dans SQLite et un événement est ajouté à la table
+   `outbox_events`. Elle apparaît immédiatement à l'écran, avec ou sans réseau.
+2. Une synchronisation est demandée via `maybeSync()`, qui ne fait rien hors ligne ou si une
+   synchronisation est déjà en cours. Le bouton manuel de l'écran de synchronisation appelle
+   `syncNow()`.
+3. Un cycle de synchronisation envoie les événements en attente (`/sync/push`), les marque
+   envoyés ou en échec selon la réponse du serveur, récupère les changements du serveur depuis le
+   dernier curseur (`/sync/pull`), les applique localement, puis enregistre le nouveau curseur.
+4. En cas d'échec, un nouvel essai est programmé avec un délai croissant (backoff exponentiel).
+5. Dans le prototype, la version dont l'`updated_at` est le plus récent l'emporte, sans fusion
+   (last write wins).
+
+Les tables SQLite sont décrites dans [`SCHEMA.md`](SCHEMA.md#base-actuelle-prototype-sqlite).
+
+## Architecture cible (PouchDB / CouchDB)
+
+### Ce que fera l'application
 
 | Domaine | Ce que le technicien peut faire |
 |---|---|
@@ -27,8 +107,6 @@ va évoluer vers elle ; les écarts sont listés à la fin.
 | Incidents | Déclarer un problème et suivre sa résolution (lumière et son uniquement). |
 | Événements | Consulter les événements du théâtre. |
 | Équipe | Consulter les membres de l'équipe. |
-
-**Hors périmètre pour l'instant** : les positions 3D du matériel et la scène en 2D (en suspens).
 
 ### Qui voit quoi
 
@@ -41,16 +119,16 @@ incidents sont rangés par module.
 
 C'est le serveur qui décide des droits ; l'application les applique.
 
-## Vue d'ensemble
+### Vue d'ensemble
 
 ```mermaid
 flowchart TD
     T["Technicien sur le terrain"]
 
     subgraph Telephone["Téléphone"]
-        E["Écrans — app/"]
-        L["Logique métier — features/"]
-        subgraph Technique["Technique — infra/"]
+        E["Écrans — src/app/"]
+        L["Logique métier — src/features/"]
+        subgraph Technique["Technique — src/infra/"]
             B[("Base du téléphone<br/>PouchDB")]
             C["Client API<br/>connexion, comptes"]
         end
@@ -70,36 +148,16 @@ flowchart TD
     A --> S
 ```
 
-L'idée clé : l'application lit et écrit **toujours** dans la base du téléphone. Le réseau
-n'intervient qu'en arrière-plan, pour synchroniser. C'est ce qui permet de travailler sans
-connexion.
-
 Les flèches en pointillés ne fonctionnent que lorsqu'il y a du réseau.
 
-## Les couches
-
-| Couche | Dossier | Rôle |
-|---|---|---|
-| Écrans | `app/` | Ce que le technicien voit et touche : les écrans et la navigation. |
-| Logique métier | `features/` | Les règles de l'application (changer l'état d'un équipement, déclarer un incident…), avec un dossier par domaine. |
-| Technique | `infra/` | La base du téléphone, la synchronisation, les appels au serveur et la session de connexion. |
-| Commun | `shared/` | Les types, constantes et petits outils utilisés par toutes les couches. |
-
-**Règle** : chaque couche n'utilise que la couche juste en dessous. Un écran ne parle jamais
-directement à la base ou au serveur : il passe par la logique métier. Les écrans restent simples
-et la logique peut être testée seule.
-
-**Seule exception** : `AppProviders`, le composant qui prépare l'application au lancement. Il
-doit ouvrir la base avant d'afficher le premier écran.
-
-## Fonctionnement hors ligne
+### Fonctionnement hors ligne
 
 1. Chaque action est enregistrée tout de suite dans la base du téléphone. Elle apparaît
    immédiatement à l'écran, avec ou sans réseau.
 2. Dès que le réseau revient, le téléphone et le serveur s'échangent leurs modifications, dans les
    deux sens.
-3. Si deux personnes ont modifié la même chose hors ligne, CouchDB détecte le conflit et choisit
-   une version gagnante. L'autre version est conservée, pour pouvoir être signalée.
+3. Après la migration vers PouchDB, les conflits passeront par le mécanisme de révisions de
+   CouchDB/PouchDB.
 4. Le téléphone ne reçoit que les données de son théâtre et de ses projets. Les comptes et les
    sessions ne sont jamais copiés sur le téléphone.
 
@@ -125,7 +183,7 @@ sequenceDiagram
     App-->>T: L'écran se met à jour
 ```
 
-## Connexion et sécurité
+### Connexion et sécurité
 
 - La première connexion se fait en ligne, avec un email et un mot de passe.
 - L'application garde la session ouverte et la renouvelle toute seule. Les informations de session
@@ -136,30 +194,6 @@ sequenceDiagram
 - Si un compte ou un téléphone est révoqué, le téléphone ne l'apprend qu'à sa prochaine
   connexion au réseau.
 
-## Étape intermédiaire
+## Hors périmètre
 
-La synchronisation entre PouchDB et CouchDB n'est pas encore disponible côté serveur : elle
-dépend de l'équipe backend.
-
-En attendant, l'application échange directement avec l'API StageOps quand le réseau est là. Le
-fonctionnement hors ligne complet arrivera avec la synchronisation.
-
-## Écarts avec le code actuel
-
-Le code actuel est un MVP. Ce qui va changer pour atteindre l'architecture visée :
-
-- **Stockage** : le téléphone utilise aujourd'hui SQLite avec une file d'attente faite maison. Il
-  sera remplacé par PouchDB.
-- **Données** : les projets et les modules n'existent pas encore, et les valeurs (états, gravités,
-  catégories) ne sont pas alignées sur celles du serveur.
-- **Fonctionnalités** : pas encore de connexion, de scan QR, d'événements ni d'équipe.
-- **Règle des couches** : deux fichiers ne la respectent pas encore (l'écran de la file de
-  synchronisation et le bandeau de synchronisation).
-- **Expo Go** : il sert pour le MVP. L'application le quittera ensuite pour une version compilée
-  par l'équipe.
-
-## Points ouverts
-
-- **Synchronisation côté serveur** : à suivre avec l'équipe backend.
-- **Scène 2D** : en suspens.
-- **Départ d'Expo Go** : prévu après le MVP.
+Voir la section « Hors périmètre pour l'instant » de [`CLAUDE.md`](../CLAUDE.md).
