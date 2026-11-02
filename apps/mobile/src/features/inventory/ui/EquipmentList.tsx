@@ -15,18 +15,18 @@ import type { Equipment, EquipmentStatus, EquipmentCategory } from '@shared/type
 // ─────────────────────────────────────────────
 
 const STATUS_META: Record<EquipmentStatus, { label: string; bg: string; fg: string }> = {
-  OK:            { label: 'OK',            bg: '#14532d', fg: '#86efac' },
-  A_VERIFIER:    { label: 'À vérifier',    bg: '#451a03', fg: '#fcd34d' },
-  HS:            { label: 'HS',            bg: '#450a0a', fg: '#fca5a5' },
+  OK: { label: 'OK', bg: '#14532d', fg: '#86efac' },
+  A_VERIFIER: { label: 'À vérifier', bg: '#451a03', fg: '#fcd34d' },
+  HS: { label: 'HS', bg: '#450a0a', fg: '#fca5a5' },
   EN_REPARATION: { label: 'En réparation', bg: '#0c2240', fg: '#7dd3fc' },
 };
 
 const CATEGORY_META: Record<EquipmentCategory, { label: string; bg: string; fg: string }> = {
-  SON:      { label: 'Son',      bg: '#2e1065', fg: '#c4b5fd' },
-  LUMIERE:  { label: 'Lumière',  bg: '#1c1917', fg: '#fde68a' },
-  VIDEO:    { label: 'Vidéo',    bg: '#042f2e', fg: '#5eead4' },
-  PLATEAU:  { label: 'Plateau',  bg: '#0f172a', fg: '#94a3b8' },
-  SECURITE: { label: 'Sécu',     bg: '#450a0a', fg: '#fca5a5' },
+  SON: { label: 'Son', bg: '#2e1065', fg: '#c4b5fd' },
+  LUMIERE: { label: 'Lumière', bg: '#1c1917', fg: '#fde68a' },
+  VIDEO: { label: 'Vidéo', bg: '#042f2e', fg: '#5eead4' },
+  PLATEAU: { label: 'Plateau', bg: '#0f172a', fg: '#94a3b8' },
+  SECURITE: { label: 'Sécu', bg: '#450a0a', fg: '#fca5a5' },
   ACCROCHE: { label: 'Accroche', bg: '#1c1917', fg: '#d6d3d1' },
 };
 
@@ -60,27 +60,17 @@ const badgeStyles = StyleSheet.create({
 // Equipment row
 // ─────────────────────────────────────────────
 
-function EquipmentRow({
-  item,
-  onPress,
-}: {
-  item: Equipment;
-  onPress: (id: string) => void;
-}) {
+function EquipmentRow({ item, onPress }: { item: Equipment; onPress: (id: string) => void }) {
   const statusMeta = STATUS_META[item.status];
   const catMeta = CATEGORY_META[item.category];
 
   return (
-    <TouchableOpacity
-      style={rowStyles.card}
-      onPress={() => onPress(item.id)}
-      activeOpacity={0.75}
-    >
+    <TouchableOpacity style={rowStyles.card} onPress={() => onPress(item.id)} activeOpacity={0.75}>
       <View style={rowStyles.top}>
         <Text style={rowStyles.name} numberOfLines={1}>
           {item.name}
         </Text>
-        <Ionicons name='chevron-forward' size={16} color='#475569' />
+        <Ionicons name="chevron-forward" size={16} color="#475569" />
       </View>
 
       <View style={rowStyles.badgeRow}>
@@ -89,7 +79,7 @@ function EquipmentRow({
       </View>
 
       <View style={rowStyles.locationRow}>
-        <Ionicons name='location-outline' size={13} color='#64748b' />
+        <Ionicons name="location-outline" size={13} color="#64748b" />
         <Text style={rowStyles.location} numberOfLines={1}>
           {item.location}
         </Text>
@@ -148,7 +138,7 @@ function EmptyState({ loading }: { loading: boolean }) {
   if (loading) return null;
   return (
     <View style={emptyStyles.wrapper}>
-      <Ionicons name='cube-outline' size={40} color='#334155' />
+      <Ionicons name="cube-outline" size={40} color="#334155" />
       <Text style={emptyStyles.text}>Aucun équipement trouvé</Text>
     </View>
   );
@@ -159,34 +149,25 @@ const emptyStyles = StyleSheet.create({
   text: { fontSize: 14, color: '#475569' },
 });
 
-function renderItem(
-  info: ListRenderItemInfo<Equipment>,
-  onPress: (id: string) => void,
-) {
+function renderItem(info: ListRenderItemInfo<Equipment>, onPress: (id: string) => void) {
   return <EquipmentRow item={info.item} onPress={onPress} />;
 }
 
 export function EquipmentList({ items, loading, onPress }: Props) {
   if (loading) {
-    return (
-      <ActivityIndicator
-        color='#38bdf8'
-        size='large'
-        style={{ marginTop: 60 }}
-      />
-    );
+    return <ActivityIndicator color="#38bdf8" size="large" style={{ marginTop: 60 }} />;
   }
 
   return (
     <FlatList
       data={items}
-      keyExtractor={(item) => item.id}
-      renderItem={(info) => renderItem(info, onPress)}
+      keyExtractor={item => item.id}
+      renderItem={info => renderItem(info, onPress)}
       ListEmptyComponent={<EmptyState loading={loading} />}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={listStyles.content}
-      keyboardShouldPersistTaps='handled'
-      keyboardDismissMode='on-drag'
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     />
   );
 }

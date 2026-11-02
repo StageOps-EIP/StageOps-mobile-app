@@ -16,7 +16,7 @@ export interface LogEntry {
 type LogSink = (entry: LogEntry) => void;
 
 // Default sink: dev console. Replace at app init for production.
-let _sink: LogSink = (entry) => {
+let _sink: LogSink = entry => {
   const prefix = `[${entry.level.toUpperCase()}][${entry.tag}]`;
   switch (entry.level) {
     case 'debug':
@@ -52,4 +52,3 @@ export const log = {
   warn: (tag: string, message: string, data?: unknown) => emit('warn', tag, message, data),
   error: (tag: string, message: string, data?: unknown) => emit('error', tag, message, data),
 };
-

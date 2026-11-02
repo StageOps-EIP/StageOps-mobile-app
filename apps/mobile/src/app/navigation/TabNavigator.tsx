@@ -34,7 +34,11 @@ export function TabNavigator() {
         },
       })}
     >
-      <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Tableau de bord' }} />
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{ title: 'Tableau de bord' }}
+      />
       <Tab.Screen name="Inventory" component={InventoryScreen} options={{ title: 'Inventaire' }} />
       <Tab.Screen
         name="IncidentCreate"

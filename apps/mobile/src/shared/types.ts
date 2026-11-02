@@ -1,13 +1,7 @@
 // ─────────────────────────────────────────────
 // Equipment
 // ─────────────────────────────────────────────
-export type EquipmentCategory =
-  | 'SON'
-  | 'LUMIERE'
-  | 'VIDEO'
-  | 'PLATEAU'
-  | 'SECURITE'
-  | 'ACCROCHE';
+export type EquipmentCategory = 'SON' | 'LUMIERE' | 'VIDEO' | 'PLATEAU' | 'SECURITE' | 'ACCROCHE';
 
 export type EquipmentStatus = 'OK' | 'A_VERIFIER' | 'HS' | 'EN_REPARATION';
 
@@ -114,4 +108,3 @@ export interface SyncPullResponse {
   next_cursor: string;
   changes: SyncChange[];
 }
-

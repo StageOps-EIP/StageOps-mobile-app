@@ -42,12 +42,12 @@ export function IncidentCreateScreen({ route, navigation }: Props) {
         styles.content,
         { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 40 },
       ]}
-      keyboardShouldPersistTaps='handled'
-      keyboardDismissMode='on-drag'
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       {/* Header */}
       <View style={styles.header}>
-        <Ionicons name='flame-outline' size={22} color='#f97316' />
+        <Ionicons name="flame-outline" size={22} color="#f97316" />
         <Text style={styles.title}>Déclarer un incident</Text>
       </View>
 

@@ -23,15 +23,15 @@ import type { OutboxEvent, OutboxStatus } from '@shared/types';
 
 const STATUS_META: Record<OutboxStatus, { label: string; color: string; bg: string }> = {
   PENDING: { label: 'En attente', color: '#fcd34d', bg: '#451a03' },
-  SENT:    { label: 'Envoyé',     color: '#86efac', bg: '#14532d' },
-  FAILED:  { label: 'Échoué',     color: '#fca5a5', bg: '#450a0a' },
+  SENT: { label: 'Envoyé', color: '#86efac', bg: '#14532d' },
+  FAILED: { label: 'Échoué', color: '#fca5a5', bg: '#450a0a' },
 };
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
-  INCIDENT_CREATE:          'Incident créé',
-  INCIDENT_UPDATE:          'Incident modifié',
-  EQUIPMENT_UPDATE_STATUS:  'Statut équipement',
-  EQUIPMENT_UPDATE:         'Équipement modifié',
+  INCIDENT_CREATE: 'Incident créé',
+  INCIDENT_UPDATE: 'Incident modifié',
+  EQUIPMENT_UPDATE_STATUS: 'Statut équipement',
+  EQUIPMENT_UPDATE: 'Équipement modifié',
 };
 
 // ─────────────────────────────────────────────
@@ -73,18 +73,16 @@ function EventRow({
           {typeLabel}
         </Text>
         <View style={[rowStyles.badge, { backgroundColor: meta.bg }]}>
-          <Text style={[rowStyles.badgeText, { color: meta.color }]}>
-            {meta.label}
-          </Text>
+          <Text style={[rowStyles.badgeText, { color: meta.color }]}>{meta.label}</Text>
         </View>
       </View>
 
       {/* Meta row */}
       <View style={rowStyles.metaRow}>
-        <Ionicons name='time-outline' size={12} color='#475569' />
+        <Ionicons name="time-outline" size={12} color="#475569" />
         <Text style={rowStyles.metaText}>il y a {formatAge(item.created_at)}</Text>
         <Text style={rowStyles.sep}>·</Text>
-        <Ionicons name='refresh-outline' size={12} color='#475569' />
+        <Ionicons name="refresh-outline" size={12} color="#475569" />
         <Text style={rowStyles.metaText}>
           {item.attempt_count} essai{item.attempt_count !== 1 ? 's' : ''}
         </Text>
@@ -105,10 +103,10 @@ function EventRow({
           disabled={resetting}
         >
           {resetting ? (
-            <ActivityIndicator size='small' color='#38bdf8' />
+            <ActivityIndicator size="small" color="#38bdf8" />
           ) : (
             <>
-              <Ionicons name='refresh' size={13} color='#38bdf8' />
+              <Ionicons name="refresh" size={13} color="#38bdf8" />
               <Text style={rowStyles.resetBtnText}>Remettre en attente</Text>
             </>
           )}
@@ -197,19 +195,17 @@ function EmptyState({ loading }: { loading: boolean }) {
   if (loading) return null;
   return (
     <View style={emptyStyles.wrapper}>
-      <Ionicons name='checkmark-circle-outline' size={44} color='#22c55e' />
+      <Ionicons name="checkmark-circle-outline" size={44} color="#22c55e" />
       <Text style={emptyStyles.title}>File vide</Text>
-      <Text style={emptyStyles.sub}>
-        Tous les événements ont été synchronisés.
-      </Text>
+      <Text style={emptyStyles.sub}>Tous les événements ont été synchronisés.</Text>
     </View>
   );
 }
 
 const emptyStyles = StyleSheet.create({
   wrapper: { alignItems: 'center', paddingTop: 72, gap: 10 },
-  title:   { fontSize: 16, fontWeight: '600', color: '#e2e8f0' },
-  sub:     { fontSize: 13, color: '#475569', textAlign: 'center' },
+  title: { fontSize: 16, fontWeight: '600', color: '#e2e8f0' },
+  sub: { fontSize: 13, color: '#475569', textAlign: 'center' },
 });
 
 // ─────────────────────────────────────────────
@@ -243,9 +239,9 @@ export function SyncQueueScreen(_: Props) {
   );
 
   // Summary counts
-  const pending = events.filter((e) => e.status === 'PENDING').length;
-  const failed  = events.filter((e) => e.status === 'FAILED').length;
-  const sent    = events.filter((e) => e.status === 'SENT').length;
+  const pending = events.filter(e => e.status === 'PENDING').length;
+  const failed = events.filter(e => e.status === 'FAILED').length;
+  const sent = events.filter(e => e.status === 'SENT').length;
 
   const handleSyncNow = async () => {
     if (isSyncing() || syncing) return;
@@ -269,11 +265,7 @@ export function SyncQueueScreen(_: Props) {
   };
 
   const renderItem = ({ item }: ListRenderItemInfo<OutboxEvent>) => (
-    <EventRow
-      item={item}
-      onReset={handleReset}
-      resetting={resettingId === item.event_id}
-    />
+    <EventRow item={item} onReset={handleReset} resetting={resettingId === item.event_id} />
   );
 
   return (
@@ -284,7 +276,8 @@ export function SyncQueueScreen(_: Props) {
           <Text style={screenStyles.title}>File de sync</Text>
           {!loading && (
             <Text style={screenStyles.subtitle}>
-              {pending} en attente · {failed} échoué{failed !== 1 ? 's' : ''} · {sent} envoyé{sent !== 1 ? 's' : ''}
+              {pending} en attente · {failed} échoué{failed !== 1 ? 's' : ''} · {sent} envoyé
+              {sent !== 1 ? 's' : ''}
             </Text>
           )}
         </View>
@@ -295,10 +288,10 @@ export function SyncQueueScreen(_: Props) {
           disabled={syncing || loading}
         >
           {syncing ? (
-            <ActivityIndicator size='small' color='#0f172a' />
+            <ActivityIndicator size="small" color="#0f172a" />
           ) : (
             <>
-              <Ionicons name='cloud-upload-outline' size={16} color='#0f172a' />
+              <Ionicons name="cloud-upload-outline" size={16} color="#0f172a" />
               <Text style={screenStyles.syncBtnText}>Réessayer</Text>
             </>
           )}
@@ -307,11 +300,11 @@ export function SyncQueueScreen(_: Props) {
 
       {/* List */}
       {loading ? (
-        <ActivityIndicator color='#38bdf8' size='large' style={{ marginTop: 60 }} />
+        <ActivityIndicator color="#38bdf8" size="large" style={{ marginTop: 60 }} />
       ) : (
         <FlatList
           data={events}
-          keyExtractor={(item) => item.event_id}
+          keyExtractor={item => item.event_id}
           renderItem={renderItem}
           ListEmptyComponent={<EmptyState loading={loading} />}
           contentContainerStyle={screenStyles.listContent}
